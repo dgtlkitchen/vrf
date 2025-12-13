@@ -19,8 +19,9 @@ type Config struct {
 	BinaryPath string
 
 	// ExpectedBinaryVersion is the version string the sidecar expects from
-	// "drand version". When non-empty, the sidecar will refuse to start if the
-	// discovered version does not match exactly.
+	// "drand --version". When non-empty, the sidecar will refuse to start if the
+	// discovered version does not match exactly (after parsing a semver from the
+	// binary's output).
 	ExpectedBinaryVersion string
 
 	// DrandDataDir is the drand daemon folder (used when DrandSupervise is true).

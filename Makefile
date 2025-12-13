@@ -203,10 +203,132 @@ install-summary:
 	@echo "Comet: $(CMT_VERSION)"
 	@echo "============================="
 
-init:
-	sh scripts/init.sh
+init: build-chain ## Initialize a local single-node devnet (destructive)
+	@BINARY=$(CHAIN_OUT) RESET_CHAIN=true sh scripts/init.sh chain
 
-	.PHONY: verify tidy go-cache install install-chain install-sidecar build build-chain build-sidecar clean print-build-info build-summary install-summary init
+###############################################################################
+### Docker
+###############################################################################
+
+DOCKER ?= docker
+DOCKER_COMPOSE ?= $(DOCKER) compose
+DOCKER_BUILDX ?= $(DOCKER) buildx
+
+DOCKER_BUILDER ?=
+ifeq ($(HOST_GOOS),darwin)
+  DOCKER_BUILDER ?= desktop-linux
+endif
+
+DOCKER_BUILDER_FLAG :=
+ifneq ($(strip $(DOCKER_BUILDER)),)
+  DOCKER_BUILDER_FLAG := --builder $(DOCKER_BUILDER)
+endif
+
+DOCKER_GO_VERSION ?= 1.25.3
+DOCKER_ALPINE_VERSION ?= 3.22
+
+IMAGE_BASE ?= vrf
+IMAGE_TAG ?= $(VERSION)
+
+CHAIN_IMAGE_REPO ?= $(IMAGE_BASE)-chain
+SIDECAR_IMAGE_REPO ?= $(IMAGE_BASE)-sidecar
+
+CHAIN_IMAGE ?= $(CHAIN_IMAGE_REPO):$(IMAGE_TAG)
+SIDECAR_IMAGE ?= $(SIDECAR_IMAGE_REPO):$(IMAGE_TAG)
+
+DOCKER_BUILD_TAGS ?= muslc
+DOCKER_LEDGER_ENABLED ?= false
+DOCKER_LINK_STATICALLY ?= true
+DOCKER_SKIP_TIDY ?= true
+
+DOCKER_LOCAL_PLATFORM ?= linux/$(HOST_GOARCH)
+DOCKER_PLATFORMS ?= linux/amd64,linux/arm64
+
+DOCKER_BUILD_ARGS := \
+	--build-arg GO_VERSION=$(DOCKER_GO_VERSION) \
+	--build-arg ALPINE_VERSION=$(DOCKER_ALPINE_VERSION) \
+	--build-arg VERSION=$(VERSION) \
+	--build-arg COMMIT=$(COMMIT) \
+	--build-arg BUILD_TAGS=$(DOCKER_BUILD_TAGS) \
+	--build-arg LEDGER_ENABLED=$(DOCKER_LEDGER_ENABLED) \
+	--build-arg LINK_STATICALLY=$(DOCKER_LINK_STATICALLY) \
+	--build-arg SKIP_TIDY=$(DOCKER_SKIP_TIDY)
+
+docker-build: docker-build-chain docker-build-sidecar ## Build Docker images (local platform)
+
+docker-build-chain: ## Build chain Docker image (local platform)
+	@$(DOCKER_BUILDX) build \
+		$(DOCKER_BUILDER_FLAG) \
+		--load \
+		--platform $(DOCKER_LOCAL_PLATFORM) \
+		$(DOCKER_BUILD_ARGS) \
+		-f contrib/images/chain.Dockerfile \
+		-t $(CHAIN_IMAGE) \
+		.
+
+docker-build-sidecar: ## Build sidecar Docker image (local platform)
+	@$(DOCKER_BUILDX) build \
+		$(DOCKER_BUILDER_FLAG) \
+		--load \
+		--platform $(DOCKER_LOCAL_PLATFORM) \
+		$(DOCKER_BUILD_ARGS) \
+		-f contrib/images/sidecar.Dockerfile \
+		-t $(SIDECAR_IMAGE) \
+		.
+
+docker-push: docker-push-chain docker-push-sidecar ## Build+push Docker images (multi-platform)
+
+docker-push-chain: ## Build+push chain Docker image (multi-platform)
+	@$(DOCKER_BUILDX) build \
+		$(DOCKER_BUILDER_FLAG) \
+		--push \
+		--platform $(DOCKER_PLATFORMS) \
+		$(DOCKER_BUILD_ARGS) \
+		-f contrib/images/chain.Dockerfile \
+		-t $(CHAIN_IMAGE) \
+		.
+
+docker-push-sidecar: ## Build+push sidecar Docker image (multi-platform)
+	@$(DOCKER_BUILDX) build \
+		$(DOCKER_BUILDER_FLAG) \
+		--push \
+		--platform $(DOCKER_PLATFORMS) \
+		$(DOCKER_BUILD_ARGS) \
+		-f contrib/images/sidecar.Dockerfile \
+		-t $(SIDECAR_IMAGE) \
+		.
+
+docker-up: ## Start Docker Compose stack (chain only)
+	@CHAIN_IMAGE=$(CHAIN_IMAGE) \
+	SIDECAR_IMAGE=$(SIDECAR_IMAGE) \
+	VERSION=$(VERSION) \
+	COMMIT=$(COMMIT) \
+	DOCKER_GO_VERSION=$(DOCKER_GO_VERSION) \
+	DOCKER_ALPINE_VERSION=$(DOCKER_ALPINE_VERSION) \
+	DOCKER_BUILD_TAGS=$(DOCKER_BUILD_TAGS) \
+	DOCKER_LEDGER_ENABLED=$(DOCKER_LEDGER_ENABLED) \
+	DOCKER_LINK_STATICALLY=$(DOCKER_LINK_STATICALLY) \
+	DOCKER_SKIP_TIDY=$(DOCKER_SKIP_TIDY) \
+	$(DOCKER_COMPOSE) up -d --build
+
+docker-up-vrf: ## Start Docker Compose stack (chain + sidecar; DRAND_* optional if genesis has x/vrf params)
+	@CHAIN_IMAGE=$(CHAIN_IMAGE) \
+	SIDECAR_IMAGE=$(SIDECAR_IMAGE) \
+	VERSION=$(VERSION) \
+	COMMIT=$(COMMIT) \
+	DOCKER_GO_VERSION=$(DOCKER_GO_VERSION) \
+	DOCKER_ALPINE_VERSION=$(DOCKER_ALPINE_VERSION) \
+	DOCKER_BUILD_TAGS=$(DOCKER_BUILD_TAGS) \
+	DOCKER_LEDGER_ENABLED=$(DOCKER_LEDGER_ENABLED) \
+	DOCKER_LINK_STATICALLY=$(DOCKER_LINK_STATICALLY) \
+	DOCKER_SKIP_TIDY=$(DOCKER_SKIP_TIDY) \
+	$(DOCKER_COMPOSE) --profile vrf up -d --build
+
+docker-down: ## Stop Docker Compose stack
+	@$(DOCKER_COMPOSE) down
+
+docker-down-clean: ## Stop Docker Compose stack and remove volumes
+	@$(DOCKER_COMPOSE) down -v
 
 ###############################################################################
 ### Protobuf
@@ -271,4 +393,43 @@ format: ## Run gofumpt + goimports
 	@$(GO_SOURCES_FIND) | xargs -0 $(GOFUMPT) -w
 	@$(GO_SOURCES_FIND) | xargs -0 $(GOIMPORTS) -w -local $(MODULE)
 
-.PHONY: help build install clean proto-all proto-check proto-gen proto-gogo proto-pulsar proto-format proto-format-check proto-lint proto-breaking test tidy lint lint-fix format
+.PHONY: \
+	help \
+	verify \
+	go-cache \
+	tidy \
+	build \
+	build-chain \
+	build-sidecar \
+	install \
+	install-chain \
+	install-sidecar \
+	clean \
+	print-build-info \
+	build-summary \
+	install-summary \
+	init \
+	docker-build \
+	docker-build-chain \
+	docker-build-sidecar \
+	docker-push \
+	docker-push-chain \
+	docker-push-sidecar \
+	docker-up \
+	docker-up-vrf \
+	docker-down \
+	docker-down-clean \
+	proto-all \
+	proto-check \
+	proto-gen \
+	proto-gogo \
+	proto-pulsar \
+	proto-openapi \
+	proto-format \
+	proto-format-check \
+	proto-lint \
+	proto-breaking \
+	test \
+	lint \
+	lint-fix \
+	format

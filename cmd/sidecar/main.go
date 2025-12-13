@@ -6,9 +6,11 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"strings"
 	"syscall"
 	"time"
@@ -26,6 +28,8 @@ func main() {
 }
 
 func run() int {
+	showVersion := flag.Bool("version", false, "print version and exit")
+
 	listenAddr := flag.String("listen-addr", "127.0.0.1:8090", "sidecar gRPC listen address (loopback or UDS via unix://)")
 	allowPublic := flag.Bool("vrf-allow-public-bind", false, "allow sidecar to bind to non-loopback addresses (unsafe; operators must secure access)")
 
@@ -47,6 +51,11 @@ func run() int {
 	periodSeconds := flag.Uint("drand-period-seconds", 0, "drand beacon period in seconds")
 	genesisUnix := flag.Int64("drand-genesis-unix", 0, "drand genesis time (unix seconds)")
 	flag.Parse()
+
+	if *showVersion {
+		printVersion(os.Stdout)
+		return 0
+	}
 
 	logger, err := zap.NewProduction()
 	if err != nil {
@@ -213,4 +222,41 @@ func isLoopbackAddr(addr string) bool {
 	}
 
 	return false
+}
+
+func printVersion(out io.Writer) {
+	buildInfo, ok := debug.ReadBuildInfo()
+	if !ok || buildInfo == nil {
+		_, _ = fmt.Fprintln(out, "sidecar")
+		return
+	}
+
+	var (
+		revision string
+		modified string
+	)
+	for _, s := range buildInfo.Settings {
+		switch s.Key {
+		case "vcs.revision":
+			revision = s.Value
+		case "vcs.modified":
+			modified = s.Value
+		}
+	}
+
+	version := strings.TrimSpace(buildInfo.Main.Version)
+	if version == "" {
+		version = "dev"
+	}
+
+	if revision == "" {
+		_, _ = fmt.Fprintf(out, "sidecar %s\n", version)
+		return
+	}
+
+	if modified == "" {
+		modified = "unknown"
+	}
+
+	_, _ = fmt.Fprintf(out, "sidecar %s (%s, modified=%s)\n", version, revision, modified)
 }

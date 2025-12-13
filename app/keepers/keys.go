@@ -2,6 +2,7 @@ package keepers
 
 import (
 	storetypes "cosmossdk.io/store/types"
+	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -11,6 +12,8 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
 )
 
 func (appKeepers *AppKeepers) GenerateKeys() {
@@ -23,8 +26,12 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		distrtypes.StoreKey,
 		slashingtypes.StoreKey,
 		govtypes.StoreKey,
+		feegrant.StoreKey,
 		consensusparamtypes.StoreKey,
 		upgradetypes.StoreKey,
+
+		// chain modules
+		vrftypes.StoreKey,
 	)
 }
 

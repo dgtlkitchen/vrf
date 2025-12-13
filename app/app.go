@@ -1,7 +1,9 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -9,6 +11,8 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	tmos "github.com/cometbft/cometbft/libs/os"
+
+	"github.com/vexxvakan/vrf/app/ante"
 	"github.com/vexxvakan/vrf/app/endpoints"
 	"github.com/vexxvakan/vrf/app/keepers"
 	"github.com/vexxvakan/vrf/app/upgrades"
@@ -44,13 +48,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtxconfig "github.com/cosmos/cosmos-sdk/x/auth/tx/config"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
+	vrfabcicodec "github.com/vexxvakan/vrf/x/vrf/abci/codec"
+	vrfpreblock "github.com/vexxvakan/vrf/x/vrf/abci/preblock/vrf"
+	vrfproposals "github.com/vexxvakan/vrf/x/vrf/abci/proposals"
+	vrfve "github.com/vexxvakan/vrf/x/vrf/abci/ve"
+	vrfconfig "github.com/vexxvakan/vrf/x/vrf/config"
+	vrfsidecar "github.com/vexxvakan/vrf/x/vrf/sidecar"
 )
 
 const (
@@ -58,7 +68,7 @@ const (
 )
 
 var (
-	NodeDir = ".chain"
+	NodeDir = ".chaind"
 	// DefaultNodeHome default home directories for this chain
 	DefaultNodeHome = os.ExpandEnv("$HOME/") + NodeDir
 
@@ -91,6 +101,8 @@ type App struct {
 	// simulation
 	configurator module.Configurator
 	sm           *module.SimulationManager
+
+	vrfClient vrfsidecar.Client
 }
 
 // New returns a reference to an initialized chain.
@@ -166,6 +178,24 @@ func New(
 	}
 	app.txConfig = txConfig
 
+	vrfAppCfg, err := vrfconfig.ReadConfigFromAppOpts(appOpts)
+	if err != nil {
+		panic(err)
+	}
+
+	app.vrfClient = vrfsidecar.NoOpClient{}
+	if vrfAppCfg.Enabled {
+		vrfClient, err := vrfsidecar.NewClient(logger, vrfAppCfg.VrfAddress, vrfAppCfg.ClientTimeout)
+		if err != nil {
+			panic(err)
+		}
+		if err := vrfClient.Start(context.Background()); err != nil {
+			panic(err)
+		}
+
+		app.vrfClient = vrfClient
+	}
+
 	app.configurator = module.NewConfigurator(appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.ModuleManager = module.NewManager(appModules(app, txConfig, appCodec)...)
 	app.BasicModuleManager = module.NewBasicManagerFromManager(
@@ -214,6 +244,7 @@ func New(
 				// ante.WithUnorderedTxGasCost(ante.DefaultUnorderedTxGasCost),
 				// ante.WithMaxUnorderedTxTimeoutDuration(ante.DefaultMaxTimeoutDuration),
 			},
+			VrfKeeper: &app.AppKeepers.VrfKeeper,
 		},
 	)
 	if err != nil {
@@ -221,9 +252,46 @@ func New(
 	}
 	app.SetAnteHandler(anteHandler)
 
+	defaultProposalHandler := baseapp.NewDefaultProposalHandler(app.Mempool(), app)
+	extendedCommitCodec := vrfabcicodec.NewCompressionExtendedCommitCodec(
+		vrfabcicodec.NewDefaultExtendedCommitCodec(),
+		vrfabcicodec.NewZStdCompressor(),
+	)
+	validateVoteExtensionsFn := vrfve.NewDefaultValidateVoteExtensionsFn(app.AppKeepers.StakingKeeper)
+	vrfProposalHandler := vrfproposals.NewProposalHandler(
+		logger,
+		defaultProposalHandler.PrepareProposalHandler(),
+		defaultProposalHandler.ProcessProposalHandler(),
+		&app.AppKeepers.VrfKeeper,
+		app.AppKeepers.AccountKeeper,
+		txConfig.SignModeHandler(),
+		txConfig.TxDecoder(),
+		validateVoteExtensionsFn,
+		extendedCommitCodec,
+	)
+	app.SetPrepareProposal(vrfProposalHandler.PrepareProposalHandler())
+	app.SetProcessProposal(vrfProposalHandler.ProcessProposalHandler())
+
+	vrfVoteExtHandler := vrfve.NewHandler(
+		logger,
+		app.vrfClient,
+		&app.AppKeepers.VrfKeeper,
+		vrfAppCfg.ClientTimeout,
+	)
+	app.SetExtendVoteHandler(vrfVoteExtHandler.ExtendVoteHandler())
+	app.SetVerifyVoteExtensionHandler(vrfVoteExtHandler.VerifyVoteExtensionHandler())
+
+	vrfPreBlockHandler := vrfpreblock.NewPreBlockHandler(
+		logger,
+		&app.AppKeepers.VrfKeeper,
+		app.AppKeepers.AccountKeeper,
+		txConfig.SignModeHandler(),
+		txConfig.TxDecoder(),
+	)
+
 	// initialize BaseApp
 	app.SetInitChainer(app.InitChainer)
-	app.SetPreBlocker(app.PreBlocker)
+	app.SetPreBlocker(vrfPreBlockHandler.WrappedPreBlocker(app.ModuleManager))
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
@@ -444,4 +512,20 @@ func (app *App) setupUpgradeHandlers() {
 			),
 		)
 	}
+}
+
+func (app *App) Close() error {
+	var errs []error
+
+	if app.vrfClient != nil {
+		if err := app.vrfClient.Stop(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if err := app.BaseApp.Close(); err != nil {
+		errs = append(errs, err)
+	}
+
+	return errors.Join(errs...)
 }

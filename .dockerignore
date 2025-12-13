@@ -1,1 +1,9 @@
 go.work*
+.git/
+.serena/
+bin/
+build/
+.idea/
+.vscode/
+**/.DS_Store
+*.log*

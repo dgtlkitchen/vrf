@@ -6,13 +6,27 @@
 
 ARG GO_VERSION="1.25.2"
 ARG ALPINE_VERSION="3.22"
+ARG VERSION="dev"
+ARG COMMIT=""
+ARG BUILD_TAGS="muslc"
+ARG LEDGER_ENABLED="false"
+ARG LINK_STATICALLY="true"
+ARG SKIP_TIDY="true"
 
 # --------------------------------------------------------
 # Builder
 # --------------------------------------------------------
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
-ENV GOTOOLCHAIN=go1.25.2
+ARG GO_VERSION
+ARG VERSION
+ARG COMMIT
+ARG BUILD_TAGS
+ARG LEDGER_ENABLED
+ARG LINK_STATICALLY
+ARG SKIP_TIDY
+
+ENV GOTOOLCHAIN=go${GO_VERSION}
 
 RUN apk add --no-cache \
     ca-certificates \
@@ -34,7 +48,10 @@ COPY . .
 # Build binary
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
-    LEDGER_ENABLED=false BUILD_TAGS=muslc LINK_STATICALLY=true make build \
+    VERSION=${VERSION} COMMIT=${COMMIT} \
+    LEDGER_ENABLED=${LEDGER_ENABLED} BUILD_TAGS=${BUILD_TAGS} \
+    LINK_STATICALLY=${LINK_STATICALLY} SKIP_TIDY=${SKIP_TIDY} \
+    make build-chain \
     && file /vrf/bin/chaind \
     && echo "Ensuring binary is statically linked ..." \
     && (file /vrf/bin/chaind | grep "statically linked")
@@ -43,7 +60,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # Runner
 # --------------------------------------------------------
 
-FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION}
+FROM alpine:${ALPINE_VERSION}
+RUN apk add --no-cache ca-certificates
 COPY --from=builder /vrf/bin/chaind /bin/chaind
 
 ENV HOME=/.vrf

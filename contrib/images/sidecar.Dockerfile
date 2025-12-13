@@ -6,13 +6,27 @@
 
 ARG GO_VERSION="1.25.2"
 ARG ALPINE_VERSION="3.22"
+ARG VERSION="dev"
+ARG COMMIT=""
+ARG BUILD_TAGS="muslc"
+ARG LEDGER_ENABLED="false"
+ARG LINK_STATICALLY="true"
+ARG SKIP_TIDY="true"
 
 # --------------------------------------------------------
 # Builder
 # --------------------------------------------------------
 
 FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS builder
-ENV GOTOOLCHAIN=go1.25.2
+ARG GO_VERSION
+ARG VERSION
+ARG COMMIT
+ARG BUILD_TAGS
+ARG LEDGER_ENABLED
+ARG LINK_STATICALLY
+ARG SKIP_TIDY
+
+ENV GOTOOLCHAIN=go${GO_VERSION}
 
 RUN apk add --no-cache \
     ca-certificates \
@@ -31,24 +45,37 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # Copy source code
 COPY . .
 
-# Build sidecar binary
+# Build sidecar + drand binaries
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
-    LEDGER_ENABLED=false BUILD_TAGS=muslc LINK_STATICALLY=true make build \
+    VERSION=${VERSION} COMMIT=${COMMIT} \
+    LEDGER_ENABLED=${LEDGER_ENABLED} BUILD_TAGS=${BUILD_TAGS} \
+    LINK_STATICALLY=${LINK_STATICALLY} SKIP_TIDY=${SKIP_TIDY} \
+    make build-sidecar \
     && file /vrf/bin/sidecar \
     && echo "Ensuring sidecar binary is statically linked ..." \
-    && (file /vrf/bin/sidecar | grep "statically linked")
+    && (file /vrf/bin/sidecar | grep "statically linked") \
+    && DRAND_VERSION="$(go list -m -f '{{.Version}}' github.com/drand/drand/v2)" \
+    && echo "Installing drand ${DRAND_VERSION} ..." \
+    && CGO_ENABLED=0 GOBIN=/vrf/bin go install -trimpath -tags "netgo ${BUILD_TAGS}" -ldflags "-s -w" github.com/drand/drand/v2/cmd/drand@${DRAND_VERSION} \
+    && /vrf/bin/drand --version >/dev/null
 
 # --------------------------------------------------------
 # Runner
 # --------------------------------------------------------
 
-FROM golang:${GO_VERSION}-alpine${ALPINE_VERSION}
+FROM alpine:${ALPINE_VERSION}
+RUN apk add --no-cache ca-certificates python3
 COPY --from=builder /vrf/bin/sidecar /bin/sidecar
+COPY --from=builder /vrf/bin/drand /bin/drand
 
 ENV HOME=/.sidecar
 WORKDIR $HOME
 
-EXPOSE 8080 8002
+EXPOSE 8090
+EXPOSE 8091
+EXPOSE 8081
+EXPOSE 4444
+EXPOSE 8881
 
 ENTRYPOINT ["sidecar"]

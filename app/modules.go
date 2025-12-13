@@ -26,6 +26,9 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	vrfmodule "github.com/vexxvakan/vrf/x/vrf/module"
+	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
 )
 
 func appModules(
@@ -50,6 +53,9 @@ func appModules(
 		staking.NewAppModule(appCodec, app.AppKeepers.StakingKeeper, app.AppKeepers.AccountKeeper, app.AppKeepers.BankKeeper, nil),
 		upgrade.NewAppModule(app.AppKeepers.UpgradeKeeper, app.AppKeepers.AccountKeeper.AddressCodec()),
 		consensus.NewAppModule(appCodec, app.AppKeepers.ConsensusParamsKeeper),
+
+		// chain modules
+		vrfmodule.NewAppModule(appCodec, app.AppKeepers.VrfKeeper),
 	}
 }
 
@@ -61,6 +67,7 @@ func orderBeginBlockers() []string {
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
 		stakingtypes.ModuleName,
+		vrftypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		govtypes.ModuleName,
@@ -74,6 +81,7 @@ func orderEndBlockers() []string {
 	return []string{
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
+		vrftypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
 		distrtypes.ModuleName,
@@ -96,6 +104,7 @@ func orderInitBlockers() []string {
 	return []string{
 		authtypes.ModuleName,
 		banktypes.ModuleName,
+		vrftypes.ModuleName,
 		distrtypes.ModuleName,
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
@@ -122,4 +131,7 @@ var AppModuleBasics = module.NewBasicManager(
 	staking.AppModuleBasic{},
 	upgrade.AppModuleBasic{},
 	consensus.AppModuleBasic{},
+
+	// chain modules
+	vrfmodule.AppModuleBasic{},
 )

@@ -16,14 +16,7 @@
 
 - `cmd/sidecar/`: `sidecar` binary entrypoint.
 - `sidecar/`: sidecar implementation (config, drand service, errors, types).
-- `services/`: sidecar API (clients/servers).
 - `x/vrf/abci/`: ABCI++ vote extension + proposal/preblock plumbing.
 - `x/vrf/`: Cosmos SDK module implementation.
 - `x/vrf/config/`: Cosmos SDK app config schema.
 - `proto/`: protobuf definitions.
-- `tests/`: integration, petri, and simapp harnesses.
-
-## Key docs
-
-- `PRD.md`: detailed architecture/requirements for the drand VRF sidecar + on-chain integration.
-- `PLAN.md`: current implementation plan (execute this when asked).

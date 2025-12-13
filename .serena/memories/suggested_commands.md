@@ -1,28 +1,19 @@
 # Suggested commands
 
-## Tooling
-
-- Install toolchain (via mise): `mise install`
-
 ## Build
 
 - Build everything: `make build`
-- Install main binary (if applicable): `make install`
+- Install everything: `make install`
 
 ## Tests
 
 - Unit tests: `make test`
-- Integration tests: `make test-integration`
-- Petri integration: `make test-petri-integ`
-- Coverage: `make test-cover`
 
 ## Lint/format
 
 - Lint: `make lint`
 - Lint with fixes: `make lint-fix`
 - Format: `make format`
-- Markdown lint: `make lint-markdown`
-- Vulnerability scan: `make govulncheck`
 
 ## Protobuf
 
@@ -32,7 +23,9 @@
 
 ## Dev environment
 
-- Start dev stack: `make start-all-dev`
-- Stop dev stack: `make stop-all-dev`
-- Start sidecar-only: `make start-sidecar-dev`
-- Stop sidecar-only: `make stop-sidecar-dev`
+- Create dev stack: `make docker-up`
+- Close dev stack: `make docker-down`
+- Start sidecar-only: `make docker-sidecar-start`
+- Stop sidecar-only: `make docker-sidecar-stop`
+- Start chain-only: `make docker-chain-start`
+- Stop chain-only: `make docker-chain-stop`

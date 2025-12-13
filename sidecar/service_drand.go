@@ -11,6 +11,7 @@ import ( //nolint:depguard
 	"net/http"
 	"net/url"
 	"os/exec"
+	"regexp"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -363,8 +364,11 @@ func enforceLoopbackHTTP(endpoint string) error {
 	return nil
 }
 
-// checkDrandBinary runs "drand version" and, when ExpectedBinaryVersion is
-// non-empty, enforces that the discovered version matches exactly.
+var drandSemverRe = regexp.MustCompile(`\b\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?\b`)
+
+// checkDrandBinary runs "drand --version" (falling back to "drand version") and,
+// when ExpectedBinaryVersion is non-empty, enforces that the discovered version
+// matches exactly.
 func checkDrandBinary(cfg Config, logger *zap.Logger) error {
 	path := cfg.BinaryPath
 	if strings.TrimSpace(path) == "" {
@@ -374,14 +378,10 @@ func checkDrandBinary(cfg Config, logger *zap.Logger) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, path, "version") //nolint:gosec
-
-	out, err := cmd.Output()
+	version, err := drandBinaryVersion(ctx, path)
 	if err != nil {
-		return fmt.Errorf("running drand version: %w", err)
+		return err
 	}
-
-	version := strings.TrimSpace(string(out))
 	logger.Info("detected drand binary version", zap.String("version", version))
 
 	if cfg.ExpectedBinaryVersion != "" && version != cfg.ExpectedBinaryVersion {
@@ -393,4 +393,30 @@ func checkDrandBinary(cfg Config, logger *zap.Logger) error {
 	}
 
 	return nil
+}
+
+func drandBinaryVersion(ctx context.Context, drandPath string) (string, error) {
+	out, err := exec.CommandContext(ctx, drandPath, "--version").CombinedOutput() //nolint:gosec
+	if err != nil {
+		legacyOut, legacyErr := exec.CommandContext(ctx, drandPath, "version").CombinedOutput() //nolint:gosec
+		if legacyErr != nil {
+			return "", fmt.Errorf(
+				"running drand --version: %w: %s",
+				err,
+				strings.TrimSpace(string(out)),
+			)
+		}
+		out = legacyOut
+	}
+
+	versionStr := strings.TrimSpace(string(out))
+	if versionStr == "" {
+		return "", fmt.Errorf("drand --version output is empty")
+	}
+
+	if semver := drandSemverRe.FindString(versionStr); semver != "" {
+		return semver, nil
+	}
+
+	return versionStr, nil
 }

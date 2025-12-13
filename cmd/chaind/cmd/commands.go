@@ -6,8 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+
 	"github.com/vexxvakan/vrf/app"
 
 	errorsmod "cosmossdk.io/errors"
@@ -101,11 +101,9 @@ func newApp(
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
-	skipUpgradeHeights := make(map[int64]bool)
-	for _, h := range cast.ToIntSlice(appOpts.Get(server.FlagUnsafeSkipUpgrades)) {
-		skipUpgradeHeights[int64(h)] = true
-	}
 	loadLatest := true
+	baseappOptions := server.DefaultBaseappOptions(appOpts)
+
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
 		homePath = app.DefaultNodeHome
@@ -118,6 +116,7 @@ func newApp(
 		loadLatest,
 		homePath,
 		appOpts,
+		baseappOptions...,
 	)
 
 	// Set up a deferred cleanup that ensures Close is called
@@ -151,6 +150,7 @@ func appExport(
 	if !ok || homePath == "" {
 		return servertypes.ExportedApp{}, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "application home is not set")
 	}
+
 	loadLatest := height == -1
 	chainApp = app.New(
 		logger,

@@ -39,9 +39,7 @@ func (p Precompile) RunNativeAction(evm *vm.EVM, contract *vm.Contract, action N
 }
 
 func (p Precompile) runNativeAction(evm *vm.EVM, contract *vm.Contract, action NativeAction) (bz []byte, err error) {
-	var (
-		ctx sdk.Context
-	)
+	var ctx sdk.Context
 
 	// Prefer a cache-aware stateDB (e.g. Evmos/Ethermint-style implementations) when available.
 	if stateDB, ok := evm.StateDB.(stateDBWithCacheContext); ok {

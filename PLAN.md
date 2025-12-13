@@ -72,7 +72,7 @@ Conventions:
   - [ ] Optional restart backoff ceiling/floor config.
   - [ ] Emit structured logs including exit code and restart count.
 
-### 1.5 Drand Binary Version Pinning (PRD §3.1) — **CLOSE THE [~] GAP**
+### 1.5 Drand Binary Version Pinning (PRD §3.1)
 
 - [x] (PARTIAL) Sidecar can compare `drand version` output to `--drand-expected-version`.
 - [ ] Make version pinning **mandatory by default** (PRD: refuse to run unknown drand semantics):
@@ -82,7 +82,7 @@ Conventions:
   - [ ] Provide an explicit escape hatch flag for development only (e.g. `--drand-version-check=off`) that is noisy in logs.
 - [ ] Update build/packaging so the shipped sidecar release and shipped drand binary are always consistent.
 
-### 1.6 Beacon Fetching, Verification, and Caching (PRD §2.2.1, §3.1, §5.2) — **CLOSE THE [~] GAPS**
+### 1.6 Beacon Fetching, Verification, and Caching (PRD §2.2.1, §3.1, §5.2)
 
 - [x] Fetch chain info from drand `/info` and validate it matches configured expectations.
 - [x] Compute `randomness = SHA256(signature)` and return `{round, randomness, signature, previous_signature}`.
@@ -98,7 +98,7 @@ Conventions:
   - [ ] Serve `round=0` from cache where safe.
   - [ ] Ensure cache does not violate “single configured chain” invariants.
 
-### 1.7 Sidecar Metrics & Logging (PRD §5.3) — **CLOSE THE [~] GAP**
+### 1.7 Sidecar Metrics & Logging (PRD §5.3)
 
 - [x] Expose baseline Prometheus metrics for latest round, fetch totals, process health, time since success.
 - [ ] Expand `vrf_drand_fetch_total{result=...}` labels beyond `success|failure` (PRD example reasons):

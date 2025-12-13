@@ -20,7 +20,6 @@ import (
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
@@ -36,6 +35,9 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
+	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
 )
 
 // module account permissions
@@ -61,9 +63,11 @@ type AppKeepers struct {
 	GovKeeper             *govkeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
-	AuthzKeeper           authzkeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	MintKeeper            mintkeeper.Keeper
+
+	// chain modules
+	VrfKeeper vrfkeeper.Keeper
 }
 
 func NewAppKeepers(
@@ -169,6 +173,12 @@ func NewAppKeepers(
 		appCodec,
 		runtime.NewKVStoreService(appKeepers.keys[feegrant.StoreKey]),
 		appKeepers.AccountKeeper,
+	)
+
+	appKeepers.VrfKeeper = vrfkeeper.NewKeeper(
+		runtime.NewKVStoreService(appKeepers.keys[vrftypes.StoreKey]),
+		appCodec,
+		govModAddress,
 	)
 
 	// register the proposal types
