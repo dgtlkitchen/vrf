@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package vexxvakan.sidecar.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/vexxvakan/vrf/sidecar/servers/vrf/types";
+
+// Vrf defines the gRPC VRF sidecar service.
+service Vrf {
+  // Randomness returns a drand beacon for a specific round or the latest
+  // available beacon when round is unset (zero).
+  rpc Randomness(QueryRandomnessRequest) returns (QueryRandomnessResponse) {
+    option (google.api.http) = {get: "/vrf/v1/randomness"};
+  }
+
+  // Info returns static drand chain information used for verification and
+  // debugging.
+  rpc Info(QueryInfoRequest) returns (QueryInfoResponse) {
+    option (google.api.http) = {get: "/vrf/v1/info"};
+  }
+}
+
+// QueryRandomnessRequest defines the request type for the Randomness method.
+// A round of zero indicates that the caller is requesting the latest beacon.
+message QueryRandomnessRequest {
+  uint64 round = 1;
+}
+
+// QueryRandomnessResponse carries a single drand beacon.
+message QueryRandomnessResponse {
+  // drand_round is the drand round number.
+  uint64 drand_round = 1;
+  // randomness is SHA256(signature).
+  bytes randomness = 2;
+  // signature is the drand BLS signature for this round.
+  bytes signature = 3;
+  // previous_signature is the BLS signature of the previous round, required
+  // for chained-scheme verification.
+  bytes previous_signature = 4;
+}
+
+// QueryInfoRequest defines the request type for the Info method.
+message QueryInfoRequest {}
+
+// QueryInfoResponse carries static drand chain information.
+message QueryInfoResponse {
+  // chain_hash is the canonical identifier for the drand chain.
+  bytes chain_hash = 1;
+  // public_key is the collective BLS public key for the drand group.
+  bytes public_key = 2;
+  // period_seconds is the drand beacon period in seconds.
+  uint64 period_seconds = 3;
+  // genesis_unix_sec is the drand genesis time (UNIX seconds) for round 1.
+  int64 genesis_unix_sec = 4;
+}

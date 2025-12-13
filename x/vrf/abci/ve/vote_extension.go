@@ -1,0 +1,201 @@
+package ve
+
+import (
+	"context"
+	"crypto/sha256"
+	"fmt"
+	"time"
+
+	"cosmossdk.io/log"
+	cometabci "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
+
+	vrfservertypes "github.com/vexxvakan/vrf/sidecar/servers/vrf/types"
+	vetypes "github.com/vexxvakan/vrf/x/vrf/abci/ve/types"
+	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
+	vrfclient "github.com/vexxvakan/vrf/x/vrf/sidecar"
+	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+)
+
+func EncodeVrfVoteExtension(ve vetypes.VrfVoteExtension) ([]byte, error) {
+	return proto.Marshal(&ve)
+}
+
+func DecodeVrfVoteExtension(bz []byte) (vetypes.VrfVoteExtension, error) {
+	if len(bz) == 0 {
+		return vetypes.VrfVoteExtension{}, nil
+	}
+
+	var ve vetypes.VrfVoteExtension
+	return ve, proto.Unmarshal(bz, &ve)
+}
+
+// Handler wires the sidecar client and x/vrf keeper into ABCI++ vote extension
+// handlers.
+type Handler struct {
+	logger  log.Logger
+	client  vrfclient.Client
+	keeper  *vrfkeeper.Keeper
+	timeout time.Duration
+}
+
+func NewHandler(
+	logger log.Logger,
+	client vrfclient.Client,
+	keeper *vrfkeeper.Keeper,
+	timeout time.Duration,
+) *Handler {
+	return &Handler{
+		logger:  logger.With("component", "vrf-vote-extension"),
+		client:  client,
+		keeper:  keeper,
+		timeout: timeout,
+	}
+}
+
+// ExtendVoteHandler implements the logic for fetching a drand
+// beacon for target_round(H) from the sidecar and including it in the vote extension.
+func (h *Handler) ExtendVoteHandler() sdk.ExtendVoteHandler {
+	return func(ctx sdk.Context, req *cometabci.RequestExtendVote) (resp *cometabci.ResponseExtendVote, err error) {
+		if req == nil {
+			return &cometabci.ResponseExtendVote{VoteExtension: nil}, fmt.Errorf("vrf: nil RequestExtendVote")
+		}
+
+		params, err := h.keeper.GetParams(ctx.Context())
+		if err != nil {
+			h.logger.Error("vrf: failed to load params; returning empty extension", "err", err)
+			return &cometabci.ResponseExtendVote{VoteExtension: nil}, nil
+		}
+
+		if !params.Enabled {
+			return &cometabci.ResponseExtendVote{VoteExtension: nil}, nil
+		}
+
+		lastTs, err := h.keeper.GetLastBlockTime(ctx.Context())
+		if err != nil {
+			h.logger.Error("vrf: failed to load last block time; returning empty extension", "err", err)
+			return &cometabci.ResponseExtendVote{VoteExtension: nil}, nil
+		}
+
+		tref := time.Unix(lastTs, 0).UTC()
+		teff := tref.Add(-time.Duration(params.SafetyMarginSeconds) * time.Second)
+		targetRound := vrftypes.RoundAt(params, teff)
+		if targetRound == 0 {
+			return &cometabci.ResponseExtendVote{VoteExtension: nil}, nil
+		}
+
+		// Call the sidecar for the specific round.
+		reqCtx, cancel := context.WithTimeout(ctx.Context(), h.timeout)
+		defer cancel()
+
+		res, err := h.client.Randomness(
+			ctx.WithContext(reqCtx),
+			&vrfservertypes.QueryRandomnessRequest{Round: targetRound},
+		)
+		if err != nil || res == nil {
+			h.logger.Error("vrf: failed to fetch randomness; returning empty extension",
+				"height", req.Height,
+				"round", targetRound,
+				"err", err,
+			)
+			return &cometabci.ResponseExtendVote{VoteExtension: nil}, nil
+		}
+
+		ve := vetypes.VrfVoteExtension{
+			DrandRound:        res.DrandRound,
+			Randomness:        res.Randomness,
+			Signature:         res.Signature,
+			PreviousSignature: res.PreviousSignature,
+			ChainHash:         params.ChainHash,
+		}
+
+		bz, err := EncodeVrfVoteExtension(ve)
+		if err != nil {
+			h.logger.Error("vrf: failed to encode vote extension; returning empty", "err", err)
+			return &cometabci.ResponseExtendVote{VoteExtension: nil}, nil
+		}
+
+		return &cometabci.ResponseExtendVote{VoteExtension: bz}, nil
+	}
+}
+
+// VerifyVoteExtensionHandler implements the deterministic checks:
+// empty acceptance, basic field checks, chain hash match, and the
+// cheap SHA256(signature) == randomness filter.
+func (h *Handler) VerifyVoteExtensionHandler() sdk.VerifyVoteExtensionHandler {
+	return func(ctx sdk.Context, req *cometabci.RequestVerifyVoteExtension) (*cometabci.ResponseVerifyVoteExtension, error) {
+		if req == nil {
+			return nil, fmt.Errorf("vrf: nil RequestVerifyVoteExtension")
+		}
+
+		// Accept empty vote extensions by default.
+		if len(req.VoteExtension) == 0 {
+			return &cometabci.ResponseVerifyVoteExtension{Status: cometabci.ResponseVerifyVoteExtension_ACCEPT}, nil
+		}
+
+		params, err := h.keeper.GetParams(ctx.Context())
+		if err != nil {
+			h.logger.Error("vrf: failed to load params in VerifyVoteExtension; rejecting", "err", err)
+			return &cometabci.ResponseVerifyVoteExtension{Status: cometabci.ResponseVerifyVoteExtension_REJECT}, err
+		}
+
+		// If VRF is disabled, ignore non-empty extensions for randomness purposes
+		// but do not reject the vote because of VRF content.
+		if !params.Enabled {
+			h.logger.Info("vrf: params.disabled=true; ignoring non-empty vote extension", "height", req.Height)
+			return &cometabci.ResponseVerifyVoteExtension{Status: cometabci.ResponseVerifyVoteExtension_ACCEPT}, nil
+		}
+
+		ve, err := DecodeVrfVoteExtension(req.VoteExtension)
+		if err != nil {
+			h.logger.Error("vrf: failed to decode vote extension", "height", req.Height, "err", err)
+			return &cometabci.ResponseVerifyVoteExtension{Status: cometabci.ResponseVerifyVoteExtension_REJECT}, err
+		}
+
+		// Basic validity.
+		if ve.DrandRound == 0 || len(ve.Randomness) == 0 || len(ve.Signature) == 0 {
+			err = fmt.Errorf("vrf: invalid vote extension fields")
+			h.logger.Error("vrf: invalid vote extension fields", "height", req.Height)
+			return &cometabci.ResponseVerifyVoteExtension{Status: cometabci.ResponseVerifyVoteExtension_REJECT}, err
+		}
+
+		// Chain hash check, if present.
+		if len(ve.ChainHash) > 0 && len(params.ChainHash) > 0 {
+			if string(ve.ChainHash) != string(params.ChainHash) {
+				err = fmt.Errorf("vrf: chain hash mismatch in vote extension")
+				h.logger.Error("vrf: chain hash mismatch", "height", req.Height)
+				return &cometabci.ResponseVerifyVoteExtension{Status: cometabci.ResponseVerifyVoteExtension_REJECT}, err
+			}
+		}
+
+		// Cheap SHA256(signature) == randomness filter.
+		sigHash := sha256.Sum256(ve.Signature)
+		if string(sigHash[:]) != string(ve.Randomness) {
+			err = fmt.Errorf("vrf: randomness != SHA256(signature)")
+			h.logger.Error("vrf: hash mismatch in vote extension", "height", req.Height)
+			return &cometabci.ResponseVerifyVoteExtension{Status: cometabci.ResponseVerifyVoteExtension_REJECT}, err
+		}
+
+		// Deterministic sanity check: compare the provided round against the
+		// target round derived from the last finalized block time. Do not
+		// reject here to avoid liveness regressions; PreBlock enforces the
+		// strict target-round policy.
+		if lastTs, tsErr := h.keeper.GetLastBlockTime(ctx.Context()); tsErr == nil {
+			tref := time.Unix(lastTs, 0).UTC()
+			teff := tref.Add(-time.Duration(params.SafetyMarginSeconds) * time.Second)
+			targetRound := vrftypes.RoundAt(params, teff)
+
+			if targetRound > 0 && ve.DrandRound != targetRound {
+				h.logger.Info(
+					"vrf: vote extension round does not match target round",
+					"height", req.Height,
+					"target_round", targetRound,
+					"extension_round", ve.DrandRound,
+				)
+			}
+		}
+
+		return &cometabci.ResponseVerifyVoteExtension{Status: cometabci.ResponseVerifyVoteExtension_ACCEPT}, nil
+	}
+}

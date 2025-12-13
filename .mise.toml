@@ -1,0 +1,22 @@
+# macOS/Linux with curl:
+# curl https://mise.run | sh
+#
+# Using Homebrew on macOS:
+# brew install mise
+#
+# Verify Installation:
+# mise --version
+#
+# Troubleshooting:
+# - Ensure PATH includes: $HOME/.local/bin
+# - Run: mise doctor
+# - For permissions issues: chmod +x $(which mise)
+#
+# Usage:
+# mise install    # Install all tools defined in .mise.toml
+# mise ls         # List installed tools
+
+[tools]
+go = "1.25.3"
+buf = "latest"
+yq = "latest"

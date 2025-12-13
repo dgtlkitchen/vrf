@@ -1,0 +1,17 @@
+version: v2
+
+clean: true
+
+inputs:
+  - directory: .
+
+plugins:
+  - remote: buf.build/community/google-gnostic-openapi:v0.7.1
+    out: ./gen/internal
+    include_imports: true
+    opt:
+      - default_response=true
+      - fq_schema_naming=false
+      - title=REST API
+      - version=v1.0.0
+      - Mvexxvakan/vrf/module/v1/module.proto=github.com/vexxvakan/vrf/api/vexxvakan/vrf/module/v1

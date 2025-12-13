@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package vexxvakan.vrf.v1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/vexxvakan/vrf/x/vrf/types";
+
+// VrfBeacon is the canonical drand beacon selected for a given block height.
+// It carries only the fields required for full on-chain verification.
+message VrfBeacon {
+  option (gogoproto.equal) = true;
+
+  // drand_round is the drand round number.
+  uint64 drand_round = 1;
+
+  // randomness is SHA256(signature).
+  bytes randomness = 2;
+
+  // signature is the drand BLS signature for this round.
+  bytes signature = 3;
+
+  // previous_signature is the BLS signature of the previous round, required
+  // for chained-scheme verification.
+  bytes previous_signature = 4;
+}
+
+// AllowlistEntry maps an address to a human-readable label for auditing.
+message AllowlistEntry {
+  option (gogoproto.equal) = true;
+
+  // address is the allowlisted account address.
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // label is free-form metadata for operator UX / auditing.
+  string label = 2;
+}
+
+// VrfIdentity binds a validator to a drand BLS identity / share for monitoring
+// and resharing coordination.
+message VrfIdentity {
+  option (gogoproto.equal) = true;
+
+  // validator_address is the validator operator address.
+  string validator_address = 1 [(cosmos_proto.scalar) = "cosmos.ValidatorAddressString"];
+
+  // drand_bls_public_key is the validator's drand BLS public key/share.
+  bytes drand_bls_public_key = 2;
+
+  // chain_hash is the drand chain hash this identity is bound to.
+  bytes chain_hash = 3;
+
+  // signal_unix_sec is the UNIX time when this identity was first registered.
+  int64 signal_unix_sec = 4;
+
+  // signal_reshare_epoch is the value of VrfParams.reshare_epoch when this
+  // identity was first registered.
+  uint64 signal_reshare_epoch = 5;
+}

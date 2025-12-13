@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package vexxvakan.vrf.v1;
+
+import "amino/amino.proto";
+import "cosmos/query/v1/query.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "vexxvakan/vrf/v1/genesis.proto";
+import "vexxvakan/vrf/v1/vrf.proto";
+
+option go_package = "github.com/vexxvakan/vrf/x/vrf/types";
+
+// Query defines the gRPC querier service for x/vrf
+service Query {
+  // Params returns the on-chain VRF parameters.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http) = {get: "/vrf/v1/params"};
+    option (cosmos.query.v1.module_query_safe) = true;
+  }
+
+  // Beacon returns the latest VrfBeacon for the current or specified height
+  rpc Beacon(QueryBeaconRequest) returns (QueryBeaconResponse) {
+    option (google.api.http) = {get: "/vrf/v1/beacon"};
+    option (cosmos.query.v1.module_query_safe) = true;
+  }
+
+  // RandomWords expands the current block's VRF seed into N random words
+  rpc RandomWords(QueryRandomWordsRequest) returns (QueryRandomWordsResponse) {
+    option (google.api.http) = {get: "/vrf/v1/random_words"};
+    option (cosmos.query.v1.module_query_safe) = true;
+  }
+}
+
+// QueryParamsRequest requests the current VRF parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse carries the current VRF parameters. The fields mirror
+// x/vrf's VrfParams type; the module keeper converts between the two.
+message QueryParamsResponse {
+  VrfParams params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// QueryBeaconRequest requests the VrfBeacon for the current context height.
+// Historical requests use the ABCI height parameter; no explicit height field
+// is needed here.
+message QueryBeaconRequest {}
+
+// QueryBeaconResponse carries the canonical VrfBeacon for the requested height.
+message QueryBeaconResponse {
+  VrfBeacon beacon = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// QueryRandomWordsRequest requests N random words derived from the beacon at
+// the current context height, using the derivation described in the PRD.
+message QueryRandomWordsRequest {
+  // count is the number of random words to derive.
+  uint32 count = 1;
+
+  // user_seed is an application-supplied seed that is mixed into the
+  // derivation to give callers domain separation.
+  bytes user_seed = 2;
+}
+
+// QueryRandomWordsResponse returns the underlying drand round, the raw seed,
+// and the derived random words.
+message QueryRandomWordsResponse {
+  uint64 drand_round = 1;
+  bytes seed = 2;
+  repeated bytes words = 3;
+}
