@@ -158,7 +158,6 @@ PRD requires `latest_beacon` **and** `latest_beacon_height`, and consumers must 
 - [ ] Update gRPC queries and CLI:
   - [ ] Ensure queries at height `H` return randomness only if `latest_beacon_height == H` in that historical context.
   - [ ] Ensure current-height queries do not “fall back” to earlier beacons.
-- [ ] Update EVM precompile (see §5) to enforce this rule and **revert** if no beacon for the current block.
 
 ### 2.3 Round Mapping (`RoundAt`, target round) (PRD §4.2.1)
 
@@ -258,32 +257,6 @@ PRD requires `latest_beacon` **and** `latest_beacon_height`, and consumers must 
 
 ---
 
-## 5) EVM Precompile + Cosmos SDK Expansion (PRD §4.4–§4.5)
-
-### 5.1 EVM Precompile Semantics (PRD §4.4)
-
-- [x] Implement `latestRandomness()` and `randomWords(count, userSeed)`.
-- [x] Enforce `count > 0` and an upper bound on `count`; charge gas proportional to `count`.
-- [ ] Ensure app ordering guarantees the beacon is written before EVM execution in the same height (PRD §4.4):
-  - [ ] `PreBlock` runs before any EVM messages at height `H`.
-  - [ ] Add an integration test proving contracts in block `H` can read `latestRandomness()` deterministically.
-- [ ] Enforce PRD “per-block only” rule:
-  - [ ] If `enabled == false` OR `latest_beacon_height != currentHeight`, **MUST revert**.
-  - [ ] No fallback to earlier height.
-- [ ] Add tests for revert semantics when:
-  - [ ] VRF disabled
-  - [ ] No beacon for the current height
-
-### 5.2 Cosmos SDK Keeper API + gRPC (PRD §4.5)
-
-- [x] Implement `GetBeacon` and `ExpandRandomness` + gRPC query for random words.
-- [ ] Enforce PRD “per-block only” rule in keeper:
-  - [ ] `GetBeacon` errors if `latest_beacon_height != ctx.BlockHeight()`.
-  - [ ] `ExpandRandomness` inherits the same guarantee.
-- [ ] Add tests ensuring `enabled == false` causes errors for all randomness APIs even if historical beacons exist.
-
----
-
 ## 6) Monitoring + Slashing (PRD §9–§10)
 
 ### 6.1 Monitoring Metrics (PRD §9.1, §10.2)
@@ -337,7 +310,7 @@ PRD requires `latest_beacon` **and** `latest_beacon_height`, and consumers must 
 - [ ] VerifyVoteExtension unit tests for deterministic sanity checks (PRD §8.2).
 - [ ] Enable/disable semantics tests across:
   - [ ] ExtendVote/VerifyVoteExtension/PreBlock
-  - [ ] keeper/gRPC/precompile behavior (PRD §8.3)
+  - [ ] keeper/gRPC behavior (PRD §8.3)
 - [ ] Failure scenario simulations (devnet/integration) (PRD §8.4):
   - [ ] drand crashes/restarts
   - [ ] partial network partition / drand lag

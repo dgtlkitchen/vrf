@@ -4,17 +4,16 @@
 
 ### 1.1 Goals
 
-- Provide a secure, unbiased, publicly verifiable randomness source to `republicd` using a **validator‑operated drand network**.
+- Provide a secure, unbiased, publicly verifiable randomness source to `chaind` using a **validator‑operated drand network**.
 - Run randomness aggregation out‑of‑process in a sidecar (`sidecar`) that:
   - Supervises a local `drand` daemon process (subprocess model).
-  - Exposes a simple gRPC/HTTP API for `republicd` to consume randomness.
+  - Exposes a simple gRPC/HTTP API for `chaind` to consume randomness.
   - Does **not** import or depend on drand `internal/*` packages.
 - Integrate randomness into consensus via **ABCI++ vote extensions**, so that:
   - Each validator includes randomness derived from the drand beacon in its votes.
   - The app aggregates randomness in `FinalizeBlock` and stores it in `x/vrf` state.
 - Provide first‑class randomness APIs for:
   - Cosmos SDK modules (`x/vrf` keeper + gRPC queries).
-  - EVM contracts (VRF precompile that can expand the seed into N random words).
 - Align validator incentives with VRF participation by:
   - Making VRF vote extensions a **first‑class responsibility** of bonded validators when VRF is enabled.
   - Introducing targeted slashing for validators that repeatedly fail to participate in VRF (e.g. consistently missing or invalid vote extensions), in addition to rich monitoring/metrics for operators.
@@ -25,7 +24,7 @@
 
 - Embedding the drand node directly via `github.com/drand/drand/v2/internal/...` in our Go code.
 - Supporting multiple drand chains simultaneously; we target **exactly one canonical VRF chain** per network.
-- Designing specific application‑level consumers (lotteries, leader election, etc.); those will build on top of `x/vrf` and the precompile.
+- Designing specific application‑level consumers (lotteries, leader election, etc.); those will build on top of `x/vrf`.
 
 ---
 
@@ -34,8 +33,8 @@
 ### 2.1 Components
 
 1. **Validator‑Operated Drand Network**
-   - A drand deployment whose participants are the validators of the `republicd` chain (or infrastructure under their control).
-   - Deployed according to the upstream operator guide:  
+   - A drand deployment whose participants are the validators of the `chaind` chain (or infrastructure under their control).
+   - Deployed according to the upstream operator guide:
      <https://docs.drand.love/operator/deploy/>
    - Each validator hosts a `drand` daemon process that:
      - Participates in DKG and beacon generation.
@@ -56,12 +55,12 @@
          - Latest and specific round beacons (`/public/latest`, `/public/{round}`).
        - Verify beacons (optional; drand already provides BLS verification semantics).
        - Derive randomness bytes `randomness = H(signature)`.
-     - Expose a **VRF gRPC/HTTP API** to `republicd`:
+     - Expose a **VRF gRPC/HTTP API** to `chaind`:
        - `Randomness` – latest beacon + seed.
        - `Info` – chain hash, round, metadata for debugging.
      - Expose Prometheus metrics for drand/VRF health.
 
-3. **VRF Client in `republicd`**
+3. **VRF Client in `chaind`**
    - Thin gRPC client that connects to the local `sidecar`.
    - Reads parameters from `app.toml` `[vrf]` section:
      - `vrf_address`, `client_timeout`, `metrics_enabled`.
@@ -69,16 +68,13 @@
      - ABCI++ vote extension handlers (`ExtendVoteHandler`, `VerifyVoteExtensionHandler`).
      - A PreBlock handler that writes randomness to `x/vrf` state.
 
-4. **On‑Chain `x/vrf` Module & EVM Precompile**
+4. **On‑Chain `x/vrf` Module**
    - New Cosmos SDK module:
      - Stores the latest canonical `VrfBeacon` in state (one per height).
      - Manages params (canonical drand `chain_hash`).
      - Provides keeper methods and gRPC queries to:
        - Fetch the beacon at the current / specified height.
-       - Expand the VRF seed into N random words (matching the precompile).
-   - EVM precompile `IVRF`:
-     - Exposes `latestRandomness()` and `randomWords(count, userSeed)`.
-     - Contract callers can request e.g. 25 random values seeded from the beacon in state.
+       - Expand the VRF seed into N random words.
 
 ### 2.2 Data Flow
 
@@ -102,7 +98,7 @@
     - Computes `randomness = SHA256(signature)` using drand’s crypto helpers.
     - Caches the latest beacon + seed in memory for efficient serving.
 
-#### 2.2.2 sidecar → `republicd`
+#### 2.2.2 sidecar → `chaind`
 
 - `sidecar` exposes a VRF gRPC server on `vrf_address` (loopback or Unix domain socket only by default):
   - `Randomness(QueryRandomnessRequest) -> QueryRandomnessResponse`:
@@ -116,11 +112,11 @@
   - `Info(QueryInfoRequest) -> QueryInfoResponse`:
     - Returns `{ chain_hash, public_key, period, genesis_time }`.
   - Any optional HTTP/JSON endpoints for debugging run on a **separate** loopback/UDS address and are disabled by default.
-- `republicd`:
+- `chaind`:
   - Maintains a client to `sidecar` with configurable timeout.
   - Treats errors / timeouts as non‑fatal (empty vote extension).
 
-#### 2.2.3 `republicd` ↔ ABCI++ (with On‑Chain Verification)
+#### 2.2.3 `chaind` ↔ ABCI++ (with On‑Chain Verification)
 
 - **ExtendVoteHandler**:
   - For each height H:
@@ -227,7 +223,7 @@ To prevent `sidecar` from becoming a pivot for SSRF or unintended outbound conne
   - Is a local trust component; if compromised, it can:
     - Censor or delay randomness.
     - But cannot forge valid drand signatures (assuming drand node keys are secure).
-- `republicd`:
+- `chaind`:
   - Treats **unverified or inconsistent randomness as consensus-invalid** for that block:
     - PreBlock must fail if it cannot verify a drand beacon using on‑chain params and drand’s crypto library.
     - This prevents stale or forged randomness from ever entering consensus state.
@@ -285,7 +281,7 @@ To prevent `sidecar` from becoming a pivot for SSRF or unintended outbound conne
 
 ### 3.3 Transport & Metrics
 
-- gRPC: `google.golang.org/grpc` for `sidecar` ↔ `republicd`.
+- gRPC: `google.golang.org/grpc` for `sidecar` ↔ `chaind`.
   - Production deployments should use gRPC over loopback or Unix domain sockets only.
 - HTTP (optional, debug‑only): standard library + `github.com/gorilla/mux` for **separate** debug/JSON endpoints if needed:
   - These must be disabled by default and, when enabled, bound only to loopback/UDS.
@@ -314,7 +310,7 @@ message VrfParams {
   uint64 safety_margin_seconds = 5;
   // Whether VRF is currently enforced by the chain.
   // When false, VRF is logically disabled: vote extensions are ignored for randomness,
-  // PreBlock does not require a beacon, and VRF queries / precompiles behave as if
+  // PreBlock does not require a beacon, and VRF queries behave as if
   // no randomness is available for the block.
   bool   enabled              = 6;
   // Monotonically increasing epoch reflecting drand resharing rounds.
@@ -366,7 +362,7 @@ message VrfBeacon {
 - At each height H, `latest_beacon` holds the beacon canonically associated with H.
 - Historical access:
   - Via Cosmos SDK / CometBFT `--height`:
-    - `republicd q vrf beacon --height H` (or equivalent gRPC metadata) returns `latest_beacon` at that height.
+    - `chaind q vrf beacon --height H` (or equivalent gRPC metadata) returns `latest_beacon` at that height.
 
 ### 4.2.1 Round Mapping from Block Time (Safe Policy)
 
@@ -556,64 +552,6 @@ To address the “bootstrapping paradox” (VRF‑induced chain halt preventing 
     - `ExtendVote` / `PreBlock` resume normal VRF behavior from that height onward, computing `target_round(H)` from the previous block time as usual and **never** attempting to backfill or reuse drand rounds from the interval during which VRF was disabled.
     - `sidecar` instances must detect the transition back to `enabled == true` and restart their drand subprocess for the chain so that fresh beacons are available again. This drand lifecycle coupling is an operational recommendation and does not affect consensus determinism, since the chain’s behavior is driven solely by `VrfParams.enabled` and the target‑round rules above.
 
-### 4.4 EVM Precompile – Randomness Expansion
-
-Precompile address: `0x0000000000000000000000000000000000000807`.
-
-```solidity
-// SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity >=0.8.18;
-
-/// @dev The VRF contract's address.
-address constant VRF_PRECOMPILE_ADDRESS = 0x0000000000000000000000000000000000000807;
-
-/// @dev The VRF contract's instance.
-IVRF constant VRF_CONTRACT = IVRF(VRF_PRECOMPILE_ADDRESS);
-
-/// @title VRF Precompile Interface
-/// @dev Interface for fetching the current block randomness and expanding it into random words.
-/// @custom:address 0x0000000000000000000000000000000000000807
-interface IVRF {
-    /// @notice Returns the canonical randomness for the current block.
-    function latestRandomness() external view returns (
-        uint64 drandRound,
-        bytes32 randomness
-    );
-
-    /// @notice Expands the current block's VRF seed into `count` random words.
-    /// @dev words[i] = keccak256(abi.encode(chainHash, drandRound, randomness, userSeed, i)).
-    function randomWords(uint256 count, bytes32 userSeed)
-        external
-        view
-        returns (bytes32[] memory words);
-}
-```
-
-Testdata (for integration tests):
-
-- A caller contract (e.g. `VRFCaller.sol`) that imports `IVRF.sol` and forwards calls to `VRF_CONTRACT.latestRandomness()` and `VRF_CONTRACT.randomWords(count, userSeed)` (mirroring the bank precompile’s `BankCaller.sol`).
-
-Implementation details:
-
-- Precompile:
-  - Reads `VrfBeacon` from `x/vrf` at the current height.
-  - Gets `seed := randomness`, `drandRound := drand_round`, and `chainHash` from params.
-  - For each `i` in `[0, count)`:
-
-    ```solidity
-    bytes32 word = keccak256(
-        abi.encode(chainHash, drandRound, seed, userSeed, i)
-    );
-    ```
-
-  - If `VrfParams.enabled == false`, or there is **no** `VrfBeacon` stored for the current height (e.g. PreBlock failed to verify/write a beacon), both `latestRandomness()` and `randomWords()` **MUST revert**:
-    - The precompile does **not** fall back to “latest height ≤ current with a beacon”.
-    - Randomness is defined strictly per‑block; no beacon for the block (or a globally disabled VRF) means the call fails.
-  - The application must ensure that the VRF aggregation/verification step in `PreBlock` (which writes `VrfBeacon` for height H) executes **before** any EVM messages at height H are processed. With this ordering, contracts can safely call `latestRandomness()` / `randomWords()` within transactions in block H and deterministically observe that block’s canonical randomness; there is no support for querying “future” block randomness.
-- Gas:
-  - Require `count > 0` and enforce an upper bound on `count` (e.g. 256).
-  - Charge gas proportional to `count`.
-
 ### 4.5 Cosmos SDK‑Native Expansion
 
 Keeper API:
@@ -630,7 +568,6 @@ func (k Keeper) ExpandRandomness(
 ) ([][]byte, error)
 ```
 
-- Derivation identical to the precompile.
 - Modules use `ctx` at execution time (current height).
 - Historical queries use `--height` to get older seeds.
 - If `VrfParams.enabled == false`, or there is no `VrfBeacon` for the current context height (e.g. PreBlock did not write one), `GetBeacon` **returns an error**, and `ExpandRandomness` must also fail with an error rather than silently synthesizing or reusing randomness.
@@ -768,7 +705,7 @@ Key pieces:
     - `/public/latest` to get latest randomness.
   - Optionally uses drand’s `common/client.Client` interface.
 - `NewVRFService`, `StartVRFGRPCServer`, and `StartVRFDebugHTTPServer`:
-  - `StartVRFGRPCServer` exposes the production gRPC API used by `republicd`:
+  - `StartVRFGRPCServer` exposes the production gRPC API used by `chaind`:
     - Bound only to loopback or a Unix domain socket by default.
     - Does **not** use h2c or gRPC‑Gateway on this port.
   - `StartVRFDebugHTTPServer` (optional) can expose JSON/HTTP endpoints for debugging:
@@ -809,7 +746,7 @@ Key pieces:
     - Use drand’s native CLI / APIs to run the initial DKG and any subsequent resharing ceremonies.
     - Maintain a drand group whose participants are a representative subset/superset of the chain’s validator community, but **do not** attempt to mirror per‑block consensus validator changes.
     - Ensure that the drand group file’s `chain_hash` and public key exactly match the on‑chain `VrfParams` (especially at genesis and after any resharing).
-  - `republicd` / `x/vrf`:
+  - `chaind` / `x/vrf`:
     - Define **VRF‑eligible** validators strictly in terms of the active consensus validator set and on‑chain identity bindings (see §4.3 and §10.1).
     - Apply VRF participation tracking and any slashing logic only to validators that are in the consensus set at each height, independent of whether the drand group has a 1:1 mapping to that set.
 - Operationally, validators are expected to:
@@ -831,7 +768,7 @@ At a high level, a typical resharing cycle proceeds as follows:
      - Maintains or updates the group membership and shares without changing the on‑chain `VrfParams.public_key` / `chain_hash` in the typical case.
 3. **Post‑reshare validation**:
    - `sidecar` continues to fetch and verify beacons using the drand library and the on‑chain `VrfParams`.
-   - `republicd` does not automatically change `VrfParams.public_key` or `chain_hash` as part of resharing; if a future drand upgrade requires a new group public key or chain hash, that must be handled as a separate, explicit on‑chain upgrade/param change, with appropriate coordination and testing.
+   - `chaind` does not automatically change `VrfParams.public_key` or `chain_hash` as part of resharing; if a future drand upgrade requires a new group public key or chain hash, that must be handled as a separate, explicit on‑chain upgrade/param change, with appropriate coordination and testing.
 4. **Slashability update**:
    - Once `VrfParams.reshare_epoch` has been incremented and the resharing has completed, validators with `VrfIdentity.signal_reshare_epoch <= VrfParams.reshare_epoch` now satisfy the “had an on‑chain opportunity to obtain a drand share” condition and become VRF‑slashable (subject to any global grace period), as defined in §10.1.
 
@@ -841,7 +778,7 @@ To coordinate drand resharing in a controlled and accountable way, `sidecar` mus
 
 - Concept:
   - `sidecar` is configured with:
-    - A `republicd` RPC endpoint (or WebSocket) to watch `x/vrf` state / events.
+    - A `chaind` RPC endpoint (or WebSocket) to watch `x/vrf` state / events.
     - The drand CLI configuration required to run resharing commands.
   - The chain exposes an on‑chain reshare signal, e.g. a monotonically increasing `reshare_nonce` field or a dedicated `MsgScheduleVrfReshare` handled by `x/vrf`, that indicates “a new drand resharing round must be executed”.
   - When this signal changes (e.g. `reshare_nonce` increments), each validator’s `sidecar` instance:
@@ -852,7 +789,7 @@ To coordinate drand resharing in a controlled and accountable way, `sidecar` mus
   - For networks that enable VRF slashing and rely on drand resharing, validators who are part of the drand group are expected to:
     - Run `sidecar` with the reshare listener enabled in production, and
     - Ensure their infrastructure is capable of executing the drand resharing commands when signalled.
-  - DKG/resharing remains an off‑chain, non‑deterministic process: failures or misconfigurations affect only the local drand node; consensus logic in `republicd` continues to rely solely on verified beacons and on‑chain `VrfParams`. Operators must treat a failed resharing (e.g. due to insufficient participation) as an operational incident and may need to coordinate a retry or intervene via governance before updating on‑chain params.
+  - DKG/resharing remains an off‑chain, non‑deterministic process: failures or misconfigurations affect only the local drand node; consensus logic in `chaind` continues to rely solely on verified beacons and on‑chain `VrfParams`. Operators must treat a failed resharing (e.g. due to insufficient participation) as an operational incident and may need to coordinate a retry or intervene via governance before updating on‑chain params.
 
 ---
 
@@ -874,7 +811,7 @@ To coordinate drand resharing in a controlled and accountable way, `sidecar` mus
     - Run `drand` and `sidecar` side by side.
     - Ensure `sidecar` is pointed at the correct drand ports and data dir.
     - Register their drand identity via `MsgRegisterVrfIdentity`.
-  - Operators must provision monitoring and alerting based on the logs and metrics described above (both from `sidecar` and `republicd`) so that drand outages, verification failures, configuration mismatches, or frequent “no randomness” events are detected quickly. In practice this means:
+  - Operators must provision monitoring and alerting based on the logs and metrics described above (both from `sidecar` and `chaind`) so that drand outages, verification failures, configuration mismatches, or frequent “no randomness” events are detected quickly. In practice this means:
     - Bundling `sidecar` and the drand binary into the validator’s deployment (e.g. Docker image, Helm chart) alongside the Cosmos node.
     - Using process supervisors (systemd, Kubernetes, etc.) to ensure that `sidecar` is always running and automatically restarted on crash, and that any unexpected exit is surfaced via logs/alerts rather than silently leaving the validator without VRF participation.
   - All participants must internalize that, under this design, **VRF and drand availability are part of the chain’s liveness assumptions**: even if >2/3 of voting power is online, blocks that require randomness will halt if those validators are not also providing valid, threshold‑satisfying VRF vote extensions. Keeping the drand network healthy and correctly configured is therefore as critical as keeping consensus nodes online.
@@ -929,7 +866,7 @@ As with any CometBFT/Cosmos SDK app, vote extensions must be enabled correctly s
   - Validators have a window to deploy and configure `sidecar` and their drand nodes before vote extensions become mandatory.
   - The ABCI++ lifecycle matches CometBFT’s expectations for when vote extensions become available and how they propagate from height `H` to `H+1`.
 
-This PRD v2 captures a drand integration strategy that mirrors the drand demo’s subprocess model, while staying within Go’s module boundaries and avoiding dependence on drand’s `internal/*` packages. It keeps the previously agreed on‑chain VRF design (module state, precompile, Cosmos SDK APIs) unchanged, only altering how randomness is sourced from drand.
+This PRD captures a drand integration strategy that mirrors the drand demo’s subprocess model, while staying within Go’s module boundaries and avoiding dependence on drand’s `internal/*` packages. It keeps the previously agreed on‑chain VRF design (module state, Cosmos SDK APIs) unchanged, only altering how randomness is sourced from drand.
 
 ---
 
@@ -956,7 +893,7 @@ This section captures additional tests and validation scenarios that implementat
 - Tests must cover transitions of `VrfParams.enabled` from `true -> false` and back:
   - When `enabled == false`, `ExtendVoteHandler` must stop producing VRF vote extensions, `VerifyVoteExtensionHandler` must ignore any non‑empty extensions for randomness, and `PreBlock` must not fail blocks due to VRF.
   - When `enabled` is re‑enabled, the handlers must resume their normal behavior, and blocks must again fail if required randomness is missing or invalid.
-- Additional tests should ensure that VRF consumers (precompile, keeper, gRPC queries) observe the correct behavior:
+- Additional tests should ensure that VRF consumers (keeper, gRPC queries) observe the correct behavior:
   - With `enabled == false`, all randomness APIs must behave as if no beacon exists for the block (revert / error), even if historical beacons remain in state.
   - With `enabled == true`, and a valid beacon written by PreBlock, randomness APIs must succeed.
 
@@ -980,7 +917,7 @@ These scenario tests act as a practical “proof of design” that the blueprint
 ### 9.1 Monitoring Transient drand Delays
 
 - A block failing because the target drand beacon is not yet available (when `VrfParams.enabled == true`) is acceptable as a **rare, transient** event: the network will attempt to propose the same height again a few seconds later, at which point the beacon is likely ready.
-- To detect when drand is running “too hot” relative to block time (e.g., frequent “no randomness, block failed” events), `republicd` should:
+- To detect when drand is running “too hot” relative to block time (e.g., frequent “no randomness, block failed” events), `chaind` should:
   - Emit clear, structured error logs whenever `PreBlock` fails due to VRF, with at least:
     - `{ height, target_round, reason = missing_beacon | hash_mismatch | bad_signature | inconsistent_extensions }`.
     - Example: “vrf: randomness verification failed for height=H round=X reason=bad_signature”.
@@ -1002,7 +939,7 @@ These scenario tests act as a practical “proof of design” that the blueprint
     - `ExtendVoteHandler` will stop emitting VRF vote extensions.
     - `VerifyVoteExtensionHandler` will ignore any VRF extensions for randomness (but may log them as a misconfiguration).
     - `PreBlock` will no longer fail blocks due to missing or invalid randomness and will skip writing new `VrfBeacon` entries.
-    - VRF consumers (precompile, keeper, gRPC queries) will observe “no randomness available” for subsequent heights (errors / reverts), even though historical beacons remain queryable at earlier heights.
+    - VRF consumers (keeper, gRPC queries) will observe “no randomness available” for subsequent heights (errors / reverts), even though historical beacons remain queryable at earlier heights.
   - When the drand network is healthy again and operators are confident in the configuration, governance can submit another proposal to set `VrfParams.enabled = true` to restore full VRF enforcement.
 - This mechanism allows the chain to remain live during extended drand outages while making the loss of randomness **explicit and visible** in parameters, logs, and metrics, rather than silently degrading security.
 - Limitation:
@@ -1036,7 +973,7 @@ This design includes objectively verifiable slashing paths for both **non‑part
 
 ### 10.2 Monitoring Invalid and Missing Extensions
 
-`republicd` must track and expose per‑validator statistics about VRF participation:
+`chaind` must track and expose per‑validator statistics about VRF participation:
 
 - For each height H where `VrfParams.enabled == true`:
   - `PreBlock` (or a helper invoked from it) records, for every VRF‑slashable validator:
