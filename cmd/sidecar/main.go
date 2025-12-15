@@ -59,6 +59,11 @@ func run() int {
 		return 1
 	}
 
+	if err := cfg.GRPC.Validate(); err != nil {
+		logger.Error("invalid gRPC server config", zap.Error(err))
+		return 1
+	}
+
 	metrics, err := sidecarmetrics.NewFromConfig(cfg.MetricsEnabled, cfg.ChainID)
 	if err != nil {
 		logger.Error("failed to initialize metrics", zap.Error(err))
@@ -138,11 +143,14 @@ func run() int {
 			}
 
 			drandCtl = newDrandController(ctx, sidecar.DrandProcessConfig{
-				BinaryPath:    drandCfg.BinaryPath,
-				DataDir:       drandCfg.DrandDataDir,
-				PrivateListen: drandCfg.DrandPrivateListen,
-				PublicListen:  drandCfg.DrandPublicListen,
-				ControlListen: drandCfg.DrandControlListen,
+				BinaryPath:        drandCfg.BinaryPath,
+				DataDir:           drandCfg.DrandDataDir,
+				PrivateListen:     drandCfg.DrandPrivateListen,
+				PublicListen:      drandCfg.DrandPublicListen,
+				ControlListen:     drandCfg.DrandControlListen,
+				DisableRestart:    cfg.DrandNoRestart,
+				RestartBackoffMin: cfg.DrandRestartMin,
+				RestartBackoffMax: cfg.DrandRestartMax,
 			}, logger, metrics)
 		}
 
@@ -175,11 +183,14 @@ func run() int {
 			}
 
 			proc, err = sidecar.StartDrandProcess(ctx, sidecar.DrandProcessConfig{
-				BinaryPath:    drandCfg.BinaryPath,
-				DataDir:       drandCfg.DrandDataDir,
-				PrivateListen: drandCfg.DrandPrivateListen,
-				PublicListen:  drandCfg.DrandPublicListen,
-				ControlListen: drandCfg.DrandControlListen,
+				BinaryPath:        drandCfg.BinaryPath,
+				DataDir:           drandCfg.DrandDataDir,
+				PrivateListen:     drandCfg.DrandPrivateListen,
+				PublicListen:      drandCfg.DrandPublicListen,
+				ControlListen:     drandCfg.DrandControlListen,
+				DisableRestart:    cfg.DrandNoRestart,
+				RestartBackoffMin: cfg.DrandRestartMin,
+				RestartBackoffMax: cfg.DrandRestartMax,
 			}, logger, metrics)
 			if err != nil {
 				logger.Error("failed to start drand subprocess", zap.Error(err))
@@ -197,6 +208,10 @@ func run() int {
 	}
 
 	server := vrfserver.NewServer(dyn, logger, metrics)
+	if err := server.SetGRPCConfig(cfg.GRPC); err != nil {
+		logger.Error("failed to configure gRPC server options", zap.Error(err))
+		return 1
+	}
 	eg, egCtx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		return server.Start(egCtx, cfg.ListenAddr)
