@@ -4,18 +4,23 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"math"
 	"time"
+
+	vrfserver "github.com/vexxvakan/vrf/sidecar/servers/vrf"
 )
 
 var (
 	errSidecarNonLoopbackBind   = errors.New("refusing to bind sidecar to non-loopback address without --vrf-allow-public-bind")
 	errMetricsNonLoopbackBind   = errors.New("refusing to bind metrics to non-loopback address without --vrf-allow-public-bind")
 	errDebugHTTPNonLoopbackBind = errors.New("refusing to bind debug http to non-loopback address without --vrf-allow-public-bind")
+	errGRPCMaxConcurrentStreams = errors.New("grpc max concurrent streams exceeds uint32 range")
 )
 
 type cliConfig struct {
 	ListenAddr      string
 	AllowPublicBind bool
+	GRPC            vrfserver.GRPCServerConfig
 
 	MetricsEnabled bool
 	MetricsAddr    string
@@ -64,6 +69,17 @@ func parseFlags(args []string) (cliConfig, bool, error) {
 	debugHTTPEnabled := fs.Bool("debug-http-enabled", false, "enable debug HTTP/JSON server")
 	debugHTTPAddr := fs.String("debug-http-addr", "127.0.0.1:8092", "debug HTTP/JSON listen address (loopback or UDS via unix://)")
 
+	grpcKeepaliveTime := fs.Duration("grpc-keepalive-time", 0, "gRPC keepalive ping interval (0 = gRPC default)")
+	grpcKeepaliveTimeout := fs.Duration("grpc-keepalive-timeout", 0, "gRPC keepalive ping timeout (0 = gRPC default)")
+	grpcKeepaliveMinTime := fs.Duration("grpc-keepalive-min-time", 0, "gRPC minimum time between client keepalive pings (0 = gRPC default)")
+	grpcKeepalivePermitWithoutStream := fs.Bool("grpc-keepalive-permit-without-stream", false, "permit keepalive pings without active streams (default false)")
+	grpcMaxConnectionIdle := fs.Duration("grpc-max-connection-idle", 0, "gRPC max idle connection duration before GOAWAY (0 = infinity)")
+	grpcMaxConnectionAge := fs.Duration("grpc-max-connection-age", 0, "gRPC max connection age before GOAWAY (0 = infinity)")
+	grpcMaxConnectionAgeGrace := fs.Duration("grpc-max-connection-age-grace", 0, "gRPC additional grace after max age before force close (0 = infinity)")
+	grpcMaxConcurrentStreams := fs.Uint("grpc-max-concurrent-streams", 0, "gRPC max concurrent streams per transport (0 = gRPC default)")
+	grpcMaxRecvMsgSize := fs.Int("grpc-max-recv-msg-size", 0, "gRPC max receive message size in bytes (0 = gRPC default)")
+	grpcMaxSendMsgSize := fs.Int("grpc-max-send-msg-size", 0, "gRPC max send message size in bytes (0 = gRPC default)")
+
 	drandSupervise := fs.Bool("drand-supervise", true, "start and supervise a local drand subprocess")
 	drandHTTP := fs.String("drand-http", "", "drand HTTP base URL (defaults to http://<drand-public-addr>)")
 	drandPublic := fs.String("drand-public-addr", "127.0.0.1:8081", "drand public listen address (also used for HTTP)")
@@ -95,9 +111,27 @@ func parseFlags(args []string) (cliConfig, bool, error) {
 		return cliConfig{}, false, err
 	}
 
+	if *grpcMaxConcurrentStreams > math.MaxUint32 {
+		return cliConfig{}, false, fmt.Errorf("%w (value=%d max=%d)", errGRPCMaxConcurrentStreams, *grpcMaxConcurrentStreams, uint64(math.MaxUint32))
+	}
+
+	grpcCfg := vrfserver.GRPCServerConfig{
+		MaxConnectionIdle:            *grpcMaxConnectionIdle,
+		MaxConnectionAge:             *grpcMaxConnectionAge,
+		MaxConnectionAgeGrace:        *grpcMaxConnectionAgeGrace,
+		KeepaliveTime:                *grpcKeepaliveTime,
+		KeepaliveTimeout:             *grpcKeepaliveTimeout,
+		KeepaliveMinTime:             *grpcKeepaliveMinTime,
+		KeepalivePermitWithoutStream: *grpcKeepalivePermitWithoutStream,
+		MaxConcurrentStreams:         uint32(*grpcMaxConcurrentStreams),
+		MaxRecvMsgSize:               *grpcMaxRecvMsgSize,
+		MaxSendMsgSize:               *grpcMaxSendMsgSize,
+	}
+
 	return cliConfig{
 		ListenAddr:          *listenAddr,
 		AllowPublicBind:     *allowPublic,
+		GRPC:                grpcCfg,
 		MetricsEnabled:      *metricsEnabled,
 		MetricsAddr:         *metricsAddr,
 		ChainID:             *chainID,

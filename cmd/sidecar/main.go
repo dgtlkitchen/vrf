@@ -59,6 +59,11 @@ func run() int {
 		return 1
 	}
 
+	if err := cfg.GRPC.Validate(); err != nil {
+		logger.Error("invalid gRPC server config", zap.Error(err))
+		return 1
+	}
+
 	metrics, err := sidecarmetrics.NewFromConfig(cfg.MetricsEnabled, cfg.ChainID)
 	if err != nil {
 		logger.Error("failed to initialize metrics", zap.Error(err))
@@ -203,6 +208,10 @@ func run() int {
 	}
 
 	server := vrfserver.NewServer(dyn, logger, metrics)
+	if err := server.SetGRPCConfig(cfg.GRPC); err != nil {
+		logger.Error("failed to configure gRPC server options", zap.Error(err))
+		return 1
+	}
 	eg, egCtx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		return server.Start(egCtx, cfg.ListenAddr)
