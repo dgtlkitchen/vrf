@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/collections"
 	"cosmossdk.io/core/store"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 
 	"github.com/vexxvakan/vrf/x/vrf/types"

@@ -6,15 +6,17 @@ import (
 	"fmt"
 	"time"
 
-	txsigning "cosmossdk.io/x/tx/signing"
+	"github.com/drand/drand/v2/common"
+	"github.com/drand/drand/v2/crypto"
+
+	cometabci "github.com/cometbft/cometbft/abci/types"
 
 	"cosmossdk.io/log"
-	cometabci "github.com/cometbft/cometbft/abci/types"
+	txsigning "cosmossdk.io/x/tx/signing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	"github.com/drand/drand/v2/common"
-	"github.com/drand/drand/v2/crypto"
 
 	abcicodec "github.com/vexxvakan/vrf/x/vrf/abci/codec"
 	abcitypes "github.com/vexxvakan/vrf/x/vrf/abci/types"

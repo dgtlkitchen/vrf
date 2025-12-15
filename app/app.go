@@ -12,12 +12,6 @@ import (
 	tmjson "github.com/cometbft/cometbft/libs/json"
 	tmos "github.com/cometbft/cometbft/libs/os"
 
-	"github.com/vexxvakan/vrf/app/ante"
-	"github.com/vexxvakan/vrf/app/endpoints"
-	"github.com/vexxvakan/vrf/app/keepers"
-	"github.com/vexxvakan/vrf/app/upgrades"
-	v2 "github.com/vexxvakan/vrf/app/upgrades/v2"
-
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
 
@@ -55,6 +49,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
+	"github.com/vexxvakan/vrf/app/ante"
+	"github.com/vexxvakan/vrf/app/endpoints"
+	"github.com/vexxvakan/vrf/app/keepers"
+	"github.com/vexxvakan/vrf/app/upgrades"
+	v2 "github.com/vexxvakan/vrf/app/upgrades/v2"
 	vrfabcicodec "github.com/vexxvakan/vrf/x/vrf/abci/codec"
 	vrfpreblock "github.com/vexxvakan/vrf/x/vrf/abci/preblock/vrf"
 	vrfproposals "github.com/vexxvakan/vrf/x/vrf/abci/proposals"

@@ -37,6 +37,9 @@ type Server struct {
 
 	sem     chan struct{}
 	limiter *rate.Limiter
+
+	perClientRate  rate.Limit
+	perClientBurst int
 }
 
 func NewServer(svc sidecar.Service, logger *zap.Logger, m sidecarmetrics.Metrics) *Server {
@@ -57,6 +60,8 @@ func NewServer(svc sidecar.Service, logger *zap.Logger, m sidecarmetrics.Metrics
 			defaultRatePerSecond,
 			defaultRateBurst,
 		),
+		perClientRate:  defaultRatePerSecond / 2,
+		perClientBurst: defaultRateBurst / 2,
 	}
 }
 

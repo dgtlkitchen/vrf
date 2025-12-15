@@ -15,11 +15,12 @@ import (
 	"sync"
 	"time"
 
-	cometrpc "github.com/cometbft/cometbft/rpc/client/http"
-	comettypes "github.com/cometbft/cometbft/types"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	cometrpc "github.com/cometbft/cometbft/rpc/client/http"
+	comettypes "github.com/cometbft/cometbft/types"
 
 	vrfv1 "github.com/vexxvakan/vrf/api/vexxvakan/vrf/v1"
 	"github.com/vexxvakan/vrf/sidecar"

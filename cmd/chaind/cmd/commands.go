@@ -8,11 +8,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/vexxvakan/vrf/app"
+	dbm "github.com/cosmos/cosmos-db"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/log"
-	dbm "github.com/cosmos/cosmos-db"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -23,6 +22,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+
+	"github.com/vexxvakan/vrf/app"
 )
 
 var tempDir = func() string {

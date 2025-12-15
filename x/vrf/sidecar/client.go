@@ -8,9 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"cosmossdk.io/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"cosmossdk.io/log"
 
 	vrftypes "github.com/vexxvakan/vrf/sidecar/servers/vrf/types"
 )

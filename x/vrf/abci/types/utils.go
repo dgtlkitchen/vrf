@@ -3,8 +3,9 @@ package types
 import (
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	metrics "github.com/hashicorp/go-metrics"
+
+	"github.com/cosmos/cosmos-sdk/telemetry"
 
 	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
 )

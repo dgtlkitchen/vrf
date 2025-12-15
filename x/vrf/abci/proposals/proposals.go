@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	txsigning "cosmossdk.io/x/tx/signing"
+	cometabci "github.com/cometbft/cometbft/abci/types"
 
 	"cosmossdk.io/log"
-	cometabci "github.com/cometbft/cometbft/abci/types"
+	txsigning "cosmossdk.io/x/tx/signing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 

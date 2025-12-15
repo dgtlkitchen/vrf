@@ -6,20 +6,24 @@ import (
 	"sort"
 	"testing"
 
-	"cosmossdk.io/core/comet"
-	"cosmossdk.io/core/header"
-	"cosmossdk.io/log"
+	"github.com/stretchr/testify/suite"
+	"go.uber.org/mock/gomock"
+
 	abci "github.com/cometbft/cometbft/abci/types"
 	cmtsecp256k1 "github.com/cometbft/cometbft/crypto/secp256k1"
 	cmtprotocrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+
+	protoio "github.com/cosmos/gogoproto/io"
+	"github.com/cosmos/gogoproto/proto"
+
+	"cosmossdk.io/core/comet"
+	"cosmossdk.io/core/header"
+	"cosmossdk.io/log"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/baseapp/testutil/mock"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	protoio "github.com/cosmos/gogoproto/io"
-	"github.com/cosmos/gogoproto/proto"
-	"github.com/stretchr/testify/suite"
-	"go.uber.org/mock/gomock"
 
 	"github.com/vexxvakan/vrf/x/vrf/abci/ve"
 )

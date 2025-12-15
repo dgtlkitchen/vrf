@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"time"
 
-	"cosmossdk.io/log"
 	cometabci "github.com/cometbft/cometbft/abci/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/cosmos/gogoproto/proto"
+
+	"cosmossdk.io/log"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	vrfservertypes "github.com/vexxvakan/vrf/sidecar/servers/vrf/types"
 	vetypes "github.com/vexxvakan/vrf/x/vrf/abci/ve/types"

@@ -1,6 +1,6 @@
 package sidecar
 
-import ( //nolint:depguard
+import (
 	"bytes"
 	"context"
 	"encoding/hex"
@@ -424,7 +424,7 @@ func (s *DrandService) verifyBeacon(round uint64, sig, prevSig []byte) error {
 	}
 
 	if err := s.scheme.VerifyBeacon(b, s.pubKey); err != nil {
-		return fmt.Errorf("%w: %v", ErrBadSignature, err)
+		return fmt.Errorf("%w: %w", ErrBadSignature, err)
 	}
 
 	return nil

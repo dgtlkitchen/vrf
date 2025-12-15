@@ -1,5 +1,7 @@
 # Agent Quick Reference
 
+You are working on the GitHub repository called "dgtlkitchen/vrf"
+
 ## Start & Activate
 - Activate project in Serena: activate_project("vrf")
 - Check onboarding state: check_onboarding_performed; run onboarding if missing.
