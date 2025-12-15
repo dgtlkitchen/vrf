@@ -38,9 +38,11 @@ type Server struct {
 
 	svc sidecar.Service
 
-	grpcSrv *grpc.Server
-	logger  *zap.Logger
-	metrics sidecarmetrics.Metrics
+	grpcSrv  *grpc.Server
+	grpcOpts []grpc.ServerOption
+	newGRPC  func(opts ...grpc.ServerOption) *grpc.Server
+	logger   *zap.Logger
+	metrics  sidecarmetrics.Metrics
 
 	sem     chan struct{}
 	limiter *rate.Limiter
@@ -72,6 +74,7 @@ func NewServer(svc sidecar.Service, logger *zap.Logger, m sidecarmetrics.Metrics
 		svc:     svc,
 		logger:  logger.With(zap.String("server", "vrf")),
 		metrics: m,
+		newGRPC: grpc.NewServer,
 		sem:     make(chan struct{}, defaultMaxConcurrent),
 		limiter: rate.NewLimiter(
 			defaultRatePerSecond,
@@ -83,12 +86,27 @@ func NewServer(svc sidecar.Service, logger *zap.Logger, m sidecarmetrics.Metrics
 	}
 }
 
+func (s *Server) SetGRPCConfig(cfg GRPCServerConfig) error {
+	grpcOpts, err := cfg.serverOptions()
+	if err != nil {
+		return err
+	}
+
+	s.grpcOpts = grpcOpts
+	return nil
+}
+
 func (s *Server) StartWithListener(ctx context.Context, ln net.Listener) error {
 	if s.svc == nil {
 		return fmt.Errorf("vrf service is nil")
 	}
 
-	s.grpcSrv = grpc.NewServer()
+	newGRPC := s.newGRPC
+	if newGRPC == nil {
+		newGRPC = grpc.NewServer
+	}
+
+	s.grpcSrv = newGRPC(s.grpcOpts...)
 	types.RegisterVrfServer(s.grpcSrv, s)
 
 	eg, ctx := errgroup.WithContext(ctx)
