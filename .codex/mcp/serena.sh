@@ -135,7 +135,7 @@ case "$cmd" in
     fi
 
     SERENA_HOST_PWD="$host_pwd" SERENA_HOST_CONFIG_DIR="$host_config_dir" \
-      "${compose_cmd[@]}" up --detach --remove-orphans "$service_name" "$@"
+      "${compose_cmd[@]}" up --detach --remove-orphans --force-recreate "$service_name" "$@"
     wait_for_container_healthy "$host_pwd" "$host_config_dir" || true
     SERENA_HOST_PWD="$host_pwd" SERENA_HOST_CONFIG_DIR="$host_config_dir" \
       "${compose_cmd[@]}" ps "$service_name" >&2 || true
