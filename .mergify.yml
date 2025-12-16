@@ -1,1 +1,21 @@
-queue_rules: []
+merge_queue:
+  # one-at-a-time
+  max_parallel_checks: 1
+
+queue_rules:
+  - name: main
+    autoqueue: true
+
+    queue_conditions:
+      - base = main
+      - -draft
+      - -conflict
+
+    merge_conditions:
+      # MUST be quoted because YAML treats '#' as a comment
+      - "#commits-behind = 0"
+      - "#approved-reviews-by >= 1"
+      - "#changes-requested-reviews-by = 0"
+
+    merge_method: squash
+    update_method: rebase

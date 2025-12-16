@@ -41,6 +41,8 @@ run.go
 oracle.json
 
 .env
+.direnv/
+.vexx.json
 
 .codex/log
 .codex/sessions
