@@ -4,7 +4,7 @@
 # Arguments
 # --------------------------------------------------------
 
-ARG GO_VERSION="1.25.2"
+ARG GO_VERSION="1.25.5"
 ARG ALPINE_VERSION="3.22"
 ARG VERSION="dev"
 ARG COMMIT=""
@@ -54,9 +54,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     LEDGER_ENABLED=${LEDGER_ENABLED} BUILD_TAGS=${BUILD_TAGS} \
     LINK_STATICALLY=${LINK_STATICALLY} SKIP_TIDY=${SKIP_TIDY} \
     make build-sidecar \
-    && file /vrf/bin/sidecar \
+    && file /vrf/bin/vrfsidecar \
     && echo "Ensuring sidecar binary is statically linked ..." \
-    && (file /vrf/bin/sidecar | grep "statically linked") \
+    && (file /vrf/bin/vrfsidecar | grep "statically linked") \
     && DRAND_VERSION="$(go list -m -f '{{.Version}}' github.com/drand/drand/v2)" \
     && echo "Installing drand ${DRAND_VERSION} ..." \
     && DRAND_TAGS="netgo ${BUILD_TAGS}" \
@@ -70,10 +70,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM alpine:${ALPINE_VERSION}
 RUN apk add --no-cache ca-certificates python3
-COPY --from=builder /vrf/bin/sidecar /bin/sidecar
+COPY --from=builder /vrf/bin/vrfsidecar /bin/vrfsidecar
 COPY --from=builder /vrf/bin/drand /bin/drand
 
-ENV HOME=/.sidecar
+ENV HOME=/.chaind
 WORKDIR $HOME
 
 EXPOSE 8090
@@ -82,4 +82,4 @@ EXPOSE 8081
 EXPOSE 4444
 EXPOSE 8888
 
-ENTRYPOINT ["sidecar"]
+ENTRYPOINT ["vrfsidecar"]

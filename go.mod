@@ -1,6 +1,6 @@
 module github.com/dgtlkitchen/vrf
 
-go 1.25.3
+go 1.25.5
 
 tool (
 	github.com/bufbuild/buf/cmd/buf
@@ -50,7 +50,7 @@ require (
 	go.uber.org/zap v1.27.1
 	golang.org/x/sync v0.19.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20251213004720-97cd9d5aeac2
-	google.golang.org/grpc v1.77.0
+	google.golang.org/grpc v1.78.0
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
 )

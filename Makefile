@@ -214,7 +214,7 @@ ifneq ($(strip $(DOCKER_BUILDER)),)
   DOCKER_BUILDER_FLAG := --builder $(DOCKER_BUILDER)
 endif
 
-DOCKER_GO_VERSION ?= 1.25.3
+DOCKER_GO_VERSION ?= 1.25.5
 DOCKER_ALPINE_VERSION ?= 3.22
 
 IMAGE_BASE ?= vrf
@@ -248,12 +248,12 @@ DOCKER_BUILD_ARGS := \
 	--build-arg LINK_STATICALLY=$(DOCKER_LINK_STATICALLY) \
 	--build-arg SKIP_TIDY=$(DOCKER_SKIP_TIDY)
 
-docker-build: docker-build-chain docker-build-sidecar ## Build Docker images (local platform)
+docker-build: docker-chain docker-sidecar ## Build Docker images (local platform)
 
-docker-build-local: ## Build Docker images tagged "local" (uses cache, insecure drand peer connections)
+docker-local: ## Build Docker images tagged "local" (uses cache, insecure drand peer connections)
 	@$(MAKE) IMAGE_TAG=local DRAND_CONN_INSECURE=true docker-build
 
-docker-build-chain: ## Build chain Docker image (local platform)
+docker-chain: ## Build chain Docker image (local platform)
 	@$(DOCKER_BUILDX) build \
 		$(DOCKER_BUILDER_FLAG) \
 		--load \
@@ -263,7 +263,7 @@ docker-build-chain: ## Build chain Docker image (local platform)
 		-t $(CHAIN_IMAGE) \
 		.
 
-docker-build-sidecar: ## Build sidecar Docker image (local platform)
+docker-sidecar: ## Build sidecar Docker image (local platform)
 	@$(DOCKER_BUILDX) build \
 		$(DOCKER_BUILDER_FLAG) \
 		--load \
@@ -273,7 +273,7 @@ docker-build-sidecar: ## Build sidecar Docker image (local platform)
 		-t $(SIDECAR_IMAGE) \
 		.
 
-docker-up: ## Start Docker Compose stack (chain + sidecar)
+up: ## Start Docker Compose stack (chain + sidecar)
 	@CHAIN_IMAGE=$(CHAIN_IMAGE) \
 	SIDECAR_IMAGE=$(SIDECAR_IMAGE) \
 	VERSION=$(VERSION) \
@@ -284,23 +284,14 @@ docker-up: ## Start Docker Compose stack (chain + sidecar)
 	DOCKER_LEDGER_ENABLED=$(DOCKER_LEDGER_ENABLED) \
 	DOCKER_LINK_STATICALLY=$(DOCKER_LINK_STATICALLY) \
 	DOCKER_SKIP_TIDY=$(DOCKER_SKIP_TIDY) \
-	$(DOCKER_COMPOSE) up -d --build
+	$(DOCKER_COMPOSE) up -d
 
 demo: ## Start Docker Compose demo stack (2-node chain + sidecars + supervised drand)
 	@CHAIN_IMAGE=$(DEMO_CHAIN_IMAGE) \
 	SIDECAR_IMAGE=$(DEMO_SIDECAR_IMAGE) \
 	COMPOSE_FILE=$(DEMO_COMPOSE_FILE) \
 	RESET=true \
-	sh ./scripts/demo.sh
-
-docker-stop: ## Stop Docker Compose stack (keeps containers + volumes)
-	@$(DOCKER_COMPOSE) stop
-
-docker-down: ## Remove Docker Compose stack (containers + network)
-	@$(DOCKER_COMPOSE) down
-
-docker-down-clean: ## Remove Docker Compose stack and volumes
-	@$(DOCKER_COMPOSE) down -v
+	sh ./scripts/demo/demo.sh
 
 ###############################################################################
 ### Protobuf

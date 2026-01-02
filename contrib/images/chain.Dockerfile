@@ -4,9 +4,9 @@
 # Arguments
 # --------------------------------------------------------
 
-ARG GO_VERSION="1.25.2"
+ARG GO_VERSION="1.25.5"
 ARG ALPINE_VERSION="3.22"
-ARG VERSION="dev"
+ARG VERSION="local"
 ARG COMMIT=""
 ARG BUILD_TAGS="muslc"
 ARG LEDGER_ENABLED="false"
@@ -64,7 +64,7 @@ FROM alpine:${ALPINE_VERSION}
 RUN apk add --no-cache ca-certificates jq
 COPY --from=builder /vrf/bin/chaind /bin/chaind
 
-ENV HOME=/.vrf
+ENV HOME=/.chaind
 WORKDIR $HOME
 
 EXPOSE 26656

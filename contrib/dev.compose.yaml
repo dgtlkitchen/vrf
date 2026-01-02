@@ -9,7 +9,7 @@ services:
       context: ..
       dockerfile: contrib/images/chain.Dockerfile
       args:
-        GO_VERSION: ${DOCKER_GO_VERSION:-1.25.3}
+        GO_VERSION: ${DOCKER_GO_VERSION:-1.25.5}
         ALPINE_VERSION: ${DOCKER_ALPINE_VERSION:-3.22}
         VERSION: ${VERSION:-dev}
         COMMIT: ${COMMIT:-}
@@ -28,7 +28,7 @@ services:
       DENOM: ${DENOM:-uchain}
       KEYNAME: ${KEYNAME:-validator}
       KEYRING_BACKEND: ${KEYRING_BACKEND:-test}
-      CHAIN_DIR: ${CHAIN_DIR:-/.vrf/.chaind}
+      CHAIN_DIR: ${CHAIN_DIR:-/.chaind/.chaind}
       RESET_CHAIN: ${RESET_CHAIN:-false}
       TIMEOUT_COMMIT: ${TIMEOUT_COMMIT:-2s}
       BLOCK_GAS_LIMIT: ${BLOCK_GAS_LIMIT:-10000000}
@@ -41,7 +41,7 @@ services:
       - "${CHAIN_GRPC_PORT:-9090}:9090"
     volumes:
       - ../scripts:/scripts:ro
-      - chain-data:/.vrf/.chaind
+      - chain-data:/.chaind/.chaind
       - vrf-socket:/var/run/vrf
     restart: unless-stopped
 
@@ -51,7 +51,7 @@ services:
       context: ..
       dockerfile: contrib/images/sidecar.Dockerfile
       args:
-        GO_VERSION: ${DOCKER_GO_VERSION:-1.25.3}
+        GO_VERSION: ${DOCKER_GO_VERSION:-1.25.5}
         ALPINE_VERSION: ${DOCKER_ALPINE_VERSION:-3.22}
         VERSION: ${VERSION:-dev}
         COMMIT: ${COMMIT:-}
@@ -64,7 +64,7 @@ services:
       - start
       - --listen-addr=unix:///var/run/vrf/sidecar.sock
     volumes:
-      - chain-data:/.vrf/.chaind
+      - chain-data:/.chaind/.chaind
       - drand-data:/var/lib/vrf/drand
       - vrf-socket:/var/run/vrf
     restart: unless-stopped
