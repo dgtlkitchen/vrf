@@ -62,7 +62,6 @@ jobs:
 
           build_target darwin amd64
           build_target darwin arm64
-          build_target linux 386
           build_target linux amd64
           build_target linux arm64
 
@@ -79,6 +78,6 @@ jobs:
             dist/vrfsidecar-${{ steps.vars.outputs.version }}-*.tar.gz
             dist/vrfsidecar-${{ steps.vars.outputs.version }}-checksums.txt
           fail_on_unmatched_files: true
-          overwrite: true
+          overwrite_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
