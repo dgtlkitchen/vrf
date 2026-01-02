@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/vexxvakan/vrf/app/endpoints"
+	"github.com/dgtlkitchen/vrf/app/endpoints"
 )
 
 func TestGetOpenAPIEndpointsIncludesAccountPath(t *testing.T) {

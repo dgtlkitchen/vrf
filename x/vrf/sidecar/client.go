@@ -14,7 +14,7 @@ import (
 
 	"cosmossdk.io/log"
 
-	sidecarv1 "github.com/vexxvakan/vrf/api/vexxvakan/sidecar/v1"
+	sidecarv1 "github.com/dgtlkitchen/vrf/api/digitalkitchen/sidecar/v1"
 )
 
 var _ Client = (*GRPCClient)(nil)

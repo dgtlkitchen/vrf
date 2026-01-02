@@ -49,17 +49,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
-	"github.com/vexxvakan/vrf/app/ante"
-	"github.com/vexxvakan/vrf/app/endpoints"
-	"github.com/vexxvakan/vrf/app/keepers"
-	"github.com/vexxvakan/vrf/app/upgrades"
-	v2 "github.com/vexxvakan/vrf/app/upgrades/v2"
-	vrfabcicodec "github.com/vexxvakan/vrf/x/vrf/abci/codec"
-	vrfpreblock "github.com/vexxvakan/vrf/x/vrf/abci/preblock/vrf"
-	vrfproposals "github.com/vexxvakan/vrf/x/vrf/abci/proposals"
-	vrfve "github.com/vexxvakan/vrf/x/vrf/abci/ve"
-	vrfconfig "github.com/vexxvakan/vrf/x/vrf/config"
-	vrfsidecar "github.com/vexxvakan/vrf/x/vrf/sidecar"
+	"github.com/dgtlkitchen/vrf/app/ante"
+	"github.com/dgtlkitchen/vrf/app/endpoints"
+	"github.com/dgtlkitchen/vrf/app/keepers"
+	"github.com/dgtlkitchen/vrf/app/upgrades"
+	v2 "github.com/dgtlkitchen/vrf/app/upgrades/v2"
+	vrfabcicodec "github.com/dgtlkitchen/vrf/x/vrf/abci/codec"
+	vrfpreblock "github.com/dgtlkitchen/vrf/x/vrf/abci/preblock/vrf"
+	vrfproposals "github.com/dgtlkitchen/vrf/x/vrf/abci/proposals"
+	vrfve "github.com/dgtlkitchen/vrf/x/vrf/abci/ve"
+	vrfconfig "github.com/dgtlkitchen/vrf/x/vrf/config"
+	vrfsidecar "github.com/dgtlkitchen/vrf/x/vrf/sidecar"
 )
 
 const (

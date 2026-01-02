@@ -6,7 +6,7 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"github.com/vexxvakan/vrf/x/vrf/types"
+	"github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 var (

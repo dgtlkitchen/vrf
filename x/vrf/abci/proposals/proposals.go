@@ -14,11 +14,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
-	"github.com/vexxvakan/vrf/x/vrf/abci/codec"
-	abcitypes "github.com/vexxvakan/vrf/x/vrf/abci/types"
-	"github.com/vexxvakan/vrf/x/vrf/abci/ve"
-	"github.com/vexxvakan/vrf/x/vrf/emergency"
-	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
+	"github.com/dgtlkitchen/vrf/x/vrf/abci/codec"
+	abcitypes "github.com/dgtlkitchen/vrf/x/vrf/abci/types"
+	"github.com/dgtlkitchen/vrf/x/vrf/abci/ve"
+	"github.com/dgtlkitchen/vrf/x/vrf/emergency"
+	vrfkeeper "github.com/dgtlkitchen/vrf/x/vrf/keeper"
 )
 
 var errInjectedExtendedCommitInfoTooLarge = errors.New("vrf: injected extended commit info exceeds MaxTxBytes")

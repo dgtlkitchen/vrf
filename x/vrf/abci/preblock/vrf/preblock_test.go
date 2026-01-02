@@ -16,10 +16,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	abcicodec "github.com/vexxvakan/vrf/x/vrf/abci/codec"
-	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
-	vrftestutil "github.com/vexxvakan/vrf/x/vrf/testutil"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	abcicodec "github.com/dgtlkitchen/vrf/x/vrf/abci/codec"
+	vrfkeeper "github.com/dgtlkitchen/vrf/x/vrf/keeper"
+	vrftestutil "github.com/dgtlkitchen/vrf/x/vrf/testutil"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 type PreBlockSuite struct {

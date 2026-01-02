@@ -1,4 +1,4 @@
-MODULE := github.com/vexxvakan/vrf
+MODULE := github.com/dgtlkitchen/vrf
 
 BIN_DIR ?= $(CURDIR)/bin
 PROTO_DIR ?= ./proto

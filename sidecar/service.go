@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	sidecarv1 "github.com/vexxvakan/vrf/api/vexxvakan/sidecar/v1"
-	scerror "github.com/vexxvakan/vrf/sidecar/errors"
+	sidecarv1 "github.com/dgtlkitchen/vrf/api/digitalkitchen/sidecar/v1"
+	scerror "github.com/dgtlkitchen/vrf/sidecar/errors"
 )
 
 // Service provides the sidecar's core VRF API (drand beacons + chain info).

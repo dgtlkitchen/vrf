@@ -8,9 +8,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
-	vrftestutil "github.com/vexxvakan/vrf/x/vrf/testutil"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrfkeeper "github.com/dgtlkitchen/vrf/x/vrf/keeper"
+	vrftestutil "github.com/dgtlkitchen/vrf/x/vrf/testutil"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 type EmergencyDecoratorSuite struct {

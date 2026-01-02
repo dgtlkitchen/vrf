@@ -35,7 +35,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	"github.com/vexxvakan/vrf/app"
+	"github.com/dgtlkitchen/vrf/app"
 )
 
 var (

@@ -20,12 +20,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
-	abcicodec "github.com/vexxvakan/vrf/x/vrf/abci/codec"
-	abcitypes "github.com/vexxvakan/vrf/x/vrf/abci/types"
-	"github.com/vexxvakan/vrf/x/vrf/abci/ve"
-	"github.com/vexxvakan/vrf/x/vrf/emergency"
-	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	abcicodec "github.com/dgtlkitchen/vrf/x/vrf/abci/codec"
+	abcitypes "github.com/dgtlkitchen/vrf/x/vrf/abci/types"
+	"github.com/dgtlkitchen/vrf/x/vrf/abci/ve"
+	"github.com/dgtlkitchen/vrf/x/vrf/emergency"
+	vrfkeeper "github.com/dgtlkitchen/vrf/x/vrf/keeper"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 var (

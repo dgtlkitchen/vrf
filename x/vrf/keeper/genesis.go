@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/vexxvakan/vrf/x/vrf/types"
+	"github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 // InitGenesis initializes the vrf module's state from genesis.

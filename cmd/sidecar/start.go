@@ -25,12 +25,12 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 
-	sidecarv1 "github.com/vexxvakan/vrf/api/vexxvakan/sidecar/v1"
-	"github.com/vexxvakan/vrf/sidecar"
-	"github.com/vexxvakan/vrf/sidecar/chainws"
-	"github.com/vexxvakan/vrf/sidecar/drand"
-	sidecarmetrics "github.com/vexxvakan/vrf/sidecar/servers/metrics"
-	vrfserver "github.com/vexxvakan/vrf/sidecar/servers/vrf"
+	sidecarv1 "github.com/dgtlkitchen/vrf/api/digitalkitchen/sidecar/v1"
+	"github.com/dgtlkitchen/vrf/sidecar"
+	"github.com/dgtlkitchen/vrf/sidecar/chainws"
+	"github.com/dgtlkitchen/vrf/sidecar/drand"
+	sidecarmetrics "github.com/dgtlkitchen/vrf/sidecar/servers/metrics"
+	vrfserver "github.com/dgtlkitchen/vrf/sidecar/servers/vrf"
 )
 
 func runStart(parent context.Context, args []string) int {

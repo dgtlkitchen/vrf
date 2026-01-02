@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 
-	"github.com/vexxvakan/vrf/x/vrf/types"
+	"github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 var errCannotRemoveModuleAuthority = errors.New("vrf: cannot remove module authority from committee")

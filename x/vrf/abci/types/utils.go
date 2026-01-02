@@ -7,7 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
 
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 // RecordLatencyAndStatus is used by the ABCI handlers to record their e2e latency, and the status of the request

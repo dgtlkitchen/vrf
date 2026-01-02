@@ -3,7 +3,7 @@ package keeper
 import (
 	"encoding/hex"
 
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 func (s *KeeperSuite) TestDeriveRandomWords() {

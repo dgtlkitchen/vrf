@@ -9,8 +9,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	vrftestutil "github.com/vexxvakan/vrf/x/vrf/testutil"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrftestutil "github.com/dgtlkitchen/vrf/x/vrf/testutil"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 type TypesSuite struct {

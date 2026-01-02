@@ -7,8 +7,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 
-	vrftestutil "github.com/vexxvakan/vrf/x/vrf/testutil"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrftestutil "github.com/dgtlkitchen/vrf/x/vrf/testutil"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 type KeeperSuite struct {

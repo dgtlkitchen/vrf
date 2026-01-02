@@ -6,7 +6,7 @@ import (
 
 	"go.uber.org/zap"
 
-	scerror "github.com/vexxvakan/vrf/sidecar/errors"
+	scerror "github.com/dgtlkitchen/vrf/sidecar/errors"
 )
 
 type peerIdentityAddr struct {

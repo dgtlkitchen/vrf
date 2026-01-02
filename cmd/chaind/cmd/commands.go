@@ -23,7 +23,7 @@ import (
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 
-	"github.com/vexxvakan/vrf/app"
+	"github.com/dgtlkitchen/vrf/app"
 )
 
 var tempDir = func() string {

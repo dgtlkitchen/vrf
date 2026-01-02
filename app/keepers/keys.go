@@ -14,7 +14,7 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 func (appKeepers *AppKeepers) GenerateKeys() {

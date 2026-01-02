@@ -23,10 +23,10 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	sidecarv1 "github.com/vexxvakan/vrf/api/vexxvakan/sidecar/v1"
-	"github.com/vexxvakan/vrf/sidecar"
-	scerror "github.com/vexxvakan/vrf/sidecar/errors"
-	sidecarmetrics "github.com/vexxvakan/vrf/sidecar/servers/metrics"
+	sidecarv1 "github.com/dgtlkitchen/vrf/api/digitalkitchen/sidecar/v1"
+	"github.com/dgtlkitchen/vrf/sidecar"
+	scerror "github.com/dgtlkitchen/vrf/sidecar/errors"
+	sidecarmetrics "github.com/dgtlkitchen/vrf/sidecar/servers/metrics"
 )
 
 const (

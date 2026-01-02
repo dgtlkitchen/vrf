@@ -20,7 +20,7 @@ import (
 	"github.com/drand/drand/v2/crypto"
 	"go.uber.org/zap"
 
-	sidecarmetrics "github.com/vexxvakan/vrf/sidecar/servers/metrics"
+	sidecarmetrics "github.com/dgtlkitchen/vrf/sidecar/servers/metrics"
 )
 
 var (

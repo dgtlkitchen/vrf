@@ -111,7 +111,7 @@ formatters:
         - prefix(github.com/cosmos)
         - prefix(cosmossdk.io)
         - prefix(github.com/cosmos/cosmos-sdk)
-        - prefix(github.com/vexxvakan/vrf)
+        - prefix(github.com/dgtlkitchen/vrf)
       custom-order: true
   exclusions:
     paths:

@@ -8,8 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
-	"github.com/vexxvakan/vrf/x/vrf/emergency"
-	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
+	"github.com/dgtlkitchen/vrf/x/vrf/emergency"
+	vrfkeeper "github.com/dgtlkitchen/vrf/x/vrf/keeper"
 )
 
 var errUnauthorizedMsgVrfEmergencyDisable = errors.New("vrf: unauthorized MsgVrfEmergencyDisable")

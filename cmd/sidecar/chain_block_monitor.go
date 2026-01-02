@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/vexxvakan/vrf/sidecar/chainws"
+	"github.com/dgtlkitchen/vrf/sidecar/chainws"
 )
 
 const chainBlockTimeoutGrace = 100 * time.Millisecond

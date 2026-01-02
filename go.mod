@@ -1,4 +1,4 @@
-module github.com/vexxvakan/vrf
+module github.com/dgtlkitchen/vrf
 
 go 1.25.3
 

@@ -25,7 +25,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp/testutil/mock"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/vexxvakan/vrf/x/vrf/abci/ve"
+	"github.com/dgtlkitchen/vrf/x/vrf/abci/ve"
 )
 
 const (

@@ -11,9 +11,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
-	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
-	vrftestutil "github.com/vexxvakan/vrf/x/vrf/testutil"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrfkeeper "github.com/dgtlkitchen/vrf/x/vrf/keeper"
+	vrftestutil "github.com/dgtlkitchen/vrf/x/vrf/testutil"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 type EmergencySuite struct {

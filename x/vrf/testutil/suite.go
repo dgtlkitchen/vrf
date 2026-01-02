@@ -23,7 +23,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 // VrfTestSuite provides shared setup for VRF unit tests.

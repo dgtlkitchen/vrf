@@ -12,8 +12,8 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	vrfante "github.com/vexxvakan/vrf/x/vrf/ante"
-	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
+	vrfante "github.com/dgtlkitchen/vrf/x/vrf/ante"
+	vrfkeeper "github.com/dgtlkitchen/vrf/x/vrf/keeper"
 )
 
 type SigVerificationDecoratorOption = authante.SigVerificationDecoratorOption

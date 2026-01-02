@@ -18,7 +18,7 @@ import (
 	gogoany "github.com/cosmos/gogoproto/types/any"
 	protov2 "google.golang.org/protobuf/proto"
 
-	vrfv1 "github.com/vexxvakan/vrf/api/vexxvakan/vrf/v1"
+	vrfv1 "github.com/dgtlkitchen/vrf/api/digitalkitchen/vrf/v1"
 )
 
 const (
@@ -26,10 +26,10 @@ const (
 	defaultTxBuffer     = 256
 	defaultBlockBuffer  = 64
 
-	msgInitialDkgTypeURL          = "/vexxvakan.vrf.v1.MsgInitialDkg"
-	msgUpdateParamsTypeURL        = "/vexxvakan.vrf.v1.MsgUpdateParams"
-	msgScheduleVrfReshareTypeURL  = "/vexxvakan.vrf.v1.MsgScheduleVrfReshare"
-	msgVrfEmergencyDisableTypeURL = "/vexxvakan.vrf.v1.MsgVrfEmergencyDisable"
+	msgInitialDkgTypeURL          = "/digitalkitchen.vrf.v1.MsgInitialDkg"
+	msgUpdateParamsTypeURL        = "/digitalkitchen.vrf.v1.MsgUpdateParams"
+	msgScheduleVrfReshareTypeURL  = "/digitalkitchen.vrf.v1.MsgScheduleVrfReshare"
+	msgVrfEmergencyDisableTypeURL = "/digitalkitchen.vrf.v1.MsgVrfEmergencyDisable"
 )
 
 var errCometRPCAddrRequired = errors.New("comet RPC address is required")

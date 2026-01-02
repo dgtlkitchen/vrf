@@ -12,7 +12,7 @@ import (
 	gogoany "github.com/cosmos/gogoproto/types/any"
 	protov2 "google.golang.org/protobuf/proto"
 
-	vrfv1 "github.com/vexxvakan/vrf/api/vexxvakan/vrf/v1"
+	vrfv1 "github.com/dgtlkitchen/vrf/api/digitalkitchen/vrf/v1"
 )
 
 type txMsg struct {

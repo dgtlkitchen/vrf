@@ -16,12 +16,12 @@ import (
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 
-	sidecarv1 "github.com/vexxvakan/vrf/api/vexxvakan/sidecar/v1"
-	vrfv1 "github.com/vexxvakan/vrf/api/vexxvakan/vrf/v1"
-	"github.com/vexxvakan/vrf/sidecar"
-	"github.com/vexxvakan/vrf/sidecar/chainws"
-	"github.com/vexxvakan/vrf/sidecar/drand"
-	sidecarmetrics "github.com/vexxvakan/vrf/sidecar/servers/metrics"
+	sidecarv1 "github.com/dgtlkitchen/vrf/api/digitalkitchen/sidecar/v1"
+	vrfv1 "github.com/dgtlkitchen/vrf/api/digitalkitchen/vrf/v1"
+	"github.com/dgtlkitchen/vrf/sidecar"
+	"github.com/dgtlkitchen/vrf/sidecar/chainws"
+	"github.com/dgtlkitchen/vrf/sidecar/drand"
+	sidecarmetrics "github.com/dgtlkitchen/vrf/sidecar/servers/metrics"
 )
 
 var (

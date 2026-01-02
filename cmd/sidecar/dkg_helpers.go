@@ -16,7 +16,7 @@ import (
 	"github.com/drand/drand/v2/crypto"
 	"go.uber.org/zap"
 
-	"github.com/vexxvakan/vrf/sidecar/drand"
+	"github.com/dgtlkitchen/vrf/sidecar/drand"
 )
 
 var (

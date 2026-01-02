@@ -28,8 +28,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	vrfmodule "github.com/vexxvakan/vrf/x/vrf/module"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrfmodule "github.com/dgtlkitchen/vrf/x/vrf/module"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 func appModules(

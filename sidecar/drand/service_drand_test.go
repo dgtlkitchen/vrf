@@ -22,8 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	scerror "github.com/vexxvakan/vrf/sidecar/errors"
-	sidecarmetrics "github.com/vexxvakan/vrf/sidecar/servers/metrics"
+	scerror "github.com/dgtlkitchen/vrf/sidecar/errors"
+	sidecarmetrics "github.com/dgtlkitchen/vrf/sidecar/servers/metrics"
 )
 
 type testDrandFixture struct {

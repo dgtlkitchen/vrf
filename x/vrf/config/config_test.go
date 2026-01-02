@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	vrftestutil "github.com/vexxvakan/vrf/x/vrf/testutil"
+	vrftestutil "github.com/dgtlkitchen/vrf/x/vrf/testutil"
 )
 
 type ConfigSuite struct {

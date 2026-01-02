@@ -14,16 +14,14 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	sidecarv1 "github.com/vexxvakan/vrf/api/vexxvakan/sidecar/v1"
-	vetypes "github.com/vexxvakan/vrf/x/vrf/abci/ve/types"
-	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
-	vrfclient "github.com/vexxvakan/vrf/x/vrf/sidecar"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	sidecarv1 "github.com/dgtlkitchen/vrf/api/digitalkitchen/sidecar/v1"
+	vetypes "github.com/dgtlkitchen/vrf/x/vrf/abci/ve/types"
+	vrfkeeper "github.com/dgtlkitchen/vrf/x/vrf/keeper"
+	vrfclient "github.com/dgtlkitchen/vrf/x/vrf/sidecar"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 var (
-	errNilRequestExtendVote           = errors.New("vrf: nil RequestExtendVote")
-	errNilRequestVerifyVoteExtension  = errors.New("vrf: nil RequestVerifyVoteExtension")
 	errInvalidVoteExtensionFields     = errors.New("vrf: invalid vote extension fields")
 	errVoteExtensionChainHashMismatch = errors.New("vrf: chain hash mismatch in vote extension")
 	errVoteExtensionHashMismatch      = errors.New("vrf: randomness != SHA256(signature)")

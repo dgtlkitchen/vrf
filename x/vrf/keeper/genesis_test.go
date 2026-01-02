@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 func (s *KeeperSuite) TestInitGenesis() {

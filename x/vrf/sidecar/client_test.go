@@ -9,8 +9,8 @@ import (
 
 	"cosmossdk.io/log"
 
-	sidecarv1 "github.com/vexxvakan/vrf/api/vexxvakan/sidecar/v1"
-	vrftestutil "github.com/vexxvakan/vrf/x/vrf/testutil"
+	sidecarv1 "github.com/dgtlkitchen/vrf/api/digitalkitchen/sidecar/v1"
+	vrftestutil "github.com/dgtlkitchen/vrf/x/vrf/testutil"
 )
 
 type SidecarSuite struct {

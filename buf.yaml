@@ -1,7 +1,7 @@
 version: v2
 modules:
   - path: proto
-    name: buf.build/vexxvakan/vrf
+    name: buf.build/dgtlkitchen/vrf
 deps:
   - buf.build/cosmos/cosmos-sdk:34ac2e8322d44db08830e553ad21b93c
   - buf.build/cosmos/cosmos-proto

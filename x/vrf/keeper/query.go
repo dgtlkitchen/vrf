@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/vexxvakan/vrf/x/vrf/types"
+	"github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 const maxRandomWords = 256

@@ -11,10 +11,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/runtime"
 
-	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
-	vrfclient "github.com/vexxvakan/vrf/x/vrf/sidecar"
-	vrftestutil "github.com/vexxvakan/vrf/x/vrf/testutil"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrfkeeper "github.com/dgtlkitchen/vrf/x/vrf/keeper"
+	vrfclient "github.com/dgtlkitchen/vrf/x/vrf/sidecar"
+	vrftestutil "github.com/dgtlkitchen/vrf/x/vrf/testutil"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 type VoteExtensionHandlerSuite struct {

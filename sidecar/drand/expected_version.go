@@ -7,8 +7,8 @@ import "strings"
 //
 // Example:
 //
-//	-X github.com/vexxvakan/vrf/sidecar.expectedDrandSemver=2.2.0
-//	-X github.com/vexxvakan/vrf/sidecar.expectedDrandCommit=deadbeef
+//	-X github.com/dgtlkitchen/vrf/sidecar.expectedDrandSemver=2.2.0
+//	-X github.com/dgtlkitchen/vrf/sidecar.expectedDrandCommit=deadbeef
 var (
 	expectedDrandSemver string
 	expectedDrandCommit string

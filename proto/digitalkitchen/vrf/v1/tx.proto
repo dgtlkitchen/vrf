@@ -1,0 +1,193 @@
+syntax = "proto3";
+
+package digitalkitchen.vrf.v1;
+
+import "amino/amino.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "digitalkitchen/vrf/v1/genesis.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dgtlkitchen/vrf/x/vrf/types";
+
+// Msg defines the x/vrf message service.
+service Msg {
+  option (cosmos.msg.v1.service) = true;
+
+  // VrfEmergencyDisable submits an emergency disable request. The message
+  // handler is intentionally light-weight; authorization and effective
+  // state change are enforced by shared logic in PreBlock and the ante
+  // decorator, as described in the PRD.
+  rpc VrfEmergencyDisable(MsgVrfEmergencyDisable) returns (MsgVrfEmergencyDisableResponse);
+
+  // InitialDkg sets the initial drand chain-info required to bootstrap VRF
+  // (chain_hash, public_key, period_seconds, genesis_unix_sec). On success it
+  // emits an event that off-chain listeners can use to trigger DKG/bootstrap
+  // workflows and refresh sidecar configuration.
+  rpc InitialDkg(MsgInitialDkg) returns (MsgInitialDkgResponse);
+
+  // UpdateParams defines a governance operation for updating the x/vrf module
+  // parameters. The authority is expected to be the x/gov module account.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // AddVrfCommitteeMember adds or updates a VRF committee member.
+  rpc AddVrfCommitteeMember(MsgAddVrfCommitteeMember) returns (MsgAddVrfCommitteeMemberResponse);
+
+  // RemoveVrfCommitteeMember removes a VRF committee member.
+  rpc RemoveVrfCommitteeMember(MsgRemoveVrfCommitteeMember) returns (MsgRemoveVrfCommitteeMemberResponse);
+
+  // RegisterVrfIdentity binds a validator to its drand identity/share.
+  rpc RegisterVrfIdentity(MsgRegisterVrfIdentity) returns (MsgRegisterVrfIdentityResponse);
+
+  // ScheduleVrfReshare bumps VrfParams.reshare_epoch to signal resharing.
+  rpc ScheduleVrfReshare(MsgScheduleVrfReshare) returns (MsgScheduleVrfReshareResponse);
+}
+
+// MsgVrfEmergencyDisable is a gasless, committee-only message that requests
+// emergency disabling of VRF for the chain. The effective state change
+// (toggling VrfParams.enabled = false) is handled in PreBlock once an
+// authorized transaction including this message has been verified.
+message MsgVrfEmergencyDisable {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "vrf/x/vrf/MsgVrfEmergencyDisable";
+
+  // authority is the Bech32 address of the signer requesting emergency disable.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // reason is a free-form, human-readable description of why VRF is being
+  // disabled. It is emitted in events and recorded off-chain for operator
+  // accountability.
+  string reason = 2;
+}
+
+// MsgVrfEmergencyDisableResponse is returned on successful delivery of
+// MsgVrfEmergencyDisable. The actual state transition is performed in PreBlock.
+message MsgVrfEmergencyDisableResponse {}
+
+// MsgInitialDkg sets the initial drand chain-info required to bootstrap VRF.
+message MsgInitialDkg {
+  option (cosmos.msg.v1.signer) = "initiator";
+  option (amino.name) = "vrf/x/vrf/MsgInitialDkg";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // initiator is the bech32 account address initiating initial DKG bootstrap.
+  string initiator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // chain_hash is the drand chain hash identifier.
+  bytes chain_hash = 2;
+
+  // public_key is the drand collective BLS public key.
+  bytes public_key = 3;
+
+  // period_seconds is the drand beacon period in seconds.
+  uint64 period_seconds = 4;
+
+  // genesis_unix_sec is the drand genesis time (UNIX seconds) for round 1.
+  int64 genesis_unix_sec = 5;
+}
+
+// MsgInitialDkgResponse is returned on successful delivery of MsgInitialDkg.
+message MsgInitialDkgResponse {}
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "vrf/x/vrf/MsgUpdateParams";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // authority is the address of the governance account.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // params defines the x/vrf parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  VrfParams params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse is returned on successful delivery of MsgUpdateParams.
+message MsgUpdateParamsResponse {}
+
+// MsgAddVrfCommitteeMember adds or updates an account in the VRF committee allowlist.
+message MsgAddVrfCommitteeMember {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "vrf/x/vrf/MsgAddVrfCommitteeMember";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // authority is the address of the governance account.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // address is the account to add to the committee.
+  string address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // label is free-form metadata for auditing.
+  string label = 3;
+}
+
+// MsgAddVrfCommitteeMemberResponse is returned on successful delivery of
+// MsgAddVrfCommitteeMember.
+message MsgAddVrfCommitteeMemberResponse {}
+
+// MsgRemoveVrfCommitteeMember removes an account from the VRF committee allowlist.
+message MsgRemoveVrfCommitteeMember {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "vrf/x/vrf/MsgRemoveVrfCommitteeMember";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MsgRemoveVrfCommitteeMemberResponse is returned on successful delivery of
+// MsgRemoveVrfCommitteeMember.
+message MsgRemoveVrfCommitteeMemberResponse {}
+
+// MsgRegisterVrfIdentity binds a validator operator to its drand BLS identity/share.
+message MsgRegisterVrfIdentity {
+  option (cosmos.msg.v1.signer) = "operator";
+  option (amino.name) = "vrf/x/vrf/MsgRegisterVrfIdentity";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // operator is the bech32 account address controlling the validator.
+  // The corresponding validator operator address is derived from this value.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // drand_bls_public_key is the validator's drand BLS public key/share.
+  bytes drand_bls_public_key = 2;
+}
+
+// MsgRegisterVrfIdentityResponse is returned on successful delivery of
+// MsgRegisterVrfIdentity.
+message MsgRegisterVrfIdentityResponse {}
+
+// MsgScheduleVrfReshare increments VrfParams.reshare_epoch to signal a new
+// resharing round.
+message MsgScheduleVrfReshare {
+  option (cosmos.msg.v1.signer) = "scheduler";
+  option (amino.name) = "vrf/x/vrf/MsgScheduleVrfReshare";
+
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // scheduler is the account requesting the reshare (must be a committee member).
+  string scheduler = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // reshare_epoch is the new reshare epoch value (must be strictly greater than the current).
+  uint64 reshare_epoch = 2;
+
+  // reason is a free-form human-readable description of why resharing is being scheduled.
+  string reason = 3;
+}
+
+// MsgScheduleVrfReshareResponse is returned on successful delivery of
+// MsgScheduleVrfReshare.
+message MsgScheduleVrfReshareResponse {}

@@ -4,5 +4,5 @@ set -eo pipefail
 go tool buf dep update
 go tool buf generate --template ./proto/buf.gen.gogo.yaml
 
-cp -r ./github.com/vexxvakan/vrf/* ./
+cp -r ./github.com/dgtlkitchen/vrf/* ./
 rm -rf ./github.com

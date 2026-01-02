@@ -3,7 +3,7 @@ package v2
 import (
 	storetypes "cosmossdk.io/store/types"
 
-	"github.com/vexxvakan/vrf/app/upgrades"
+	"github.com/dgtlkitchen/vrf/app/upgrades"
 )
 
 const UpgradeName = "v2"

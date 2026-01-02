@@ -16,7 +16,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/vexxvakan/vrf/sidecar/drand"
+	"github.com/dgtlkitchen/vrf/sidecar/drand"
 )
 
 func newConfigCmd() *cobra.Command {

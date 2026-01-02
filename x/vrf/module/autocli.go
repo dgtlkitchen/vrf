@@ -7,7 +7,7 @@ import (
 func (AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 	return &autocliv1.ModuleOptions{
 		Query: &autocliv1.ServiceCommandDescriptor{
-			Service: "vexxvakan.vrf.v1.Query",
+			Service: "digitalkitchen.vrf.v1.Query",
 			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
 				{
 					RpcMethod: "Params",
@@ -27,7 +27,7 @@ func (AppModule) AutoCLIOptions() *autocliv1.ModuleOptions {
 			},
 		},
 		Tx: &autocliv1.ServiceCommandDescriptor{
-			Service:              "vexxvakan.vrf.v1.Msg",
+			Service:              "digitalkitchen.vrf.v1.Msg",
 			EnhanceCustomCommand: true,
 			RpcCommandOptions: []*autocliv1.RpcCommandOptions{
 				{

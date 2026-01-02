@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package digitalkitchen.vrf.v1;
+
+import "amino/amino.proto";
+import "digitalkitchen/vrf/v1/vrf.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/dgtlkitchen/vrf/x/vrf/types";
+
+// GenesisState defines the vrf module's genesis state.
+message GenesisState {
+  // params defines the module parameters.
+  VrfParams params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+
+  // latest_beacon is the canonical drand beacon for the current height, if any.
+  VrfBeacon latest_beacon = 2;
+
+  // committee contains allowlisted authorities for VRF emergency disable and
+  // resharing scheduling.
+  repeated AllowlistEntry committee = 3 [(gogoproto.nullable) = false];
+
+  // identities contains validator -> drand identity bindings.
+  repeated VrfIdentity identities = 4 [(gogoproto.nullable) = false];
+}
+
+// VrfParams mirrors the PRD definition and contains all cryptographic and timing
+// context needed to verify drand beacons on-chain and map block time to drand
+// rounds.
+message VrfParams {
+  option (gogoproto.equal) = true;
+
+  // chain_hash is the canonical identifier for the drand chain.
+  bytes chain_hash = 1;
+
+  // public_key is the collective BLS public key for the drand group.
+  bytes public_key = 2;
+
+  // period_seconds is the drand beacon period in seconds.
+  uint64 period_seconds = 3;
+
+  // genesis_unix_sec is the drand genesis time (UNIX seconds) for round 1.
+  int64 genesis_unix_sec = 4;
+
+  // safety_margin_seconds is the safety margin applied when computing
+  // target_round(H) from block times.
+  uint64 safety_margin_seconds = 5;
+
+  // enabled gates VRF behavior in ExtendVote/PreBlock.
+  bool enabled = 6;
+
+  // reshare_epoch is the on-chain resharing signal / epoch counter.
+  uint64 reshare_epoch = 7;
+
+  // slashing_grace_blocks configures the slashing grace window.
+  uint64 slashing_grace_blocks = 8;
+}

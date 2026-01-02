@@ -22,9 +22,9 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/singleflight"
 
-	sidecarv1 "github.com/vexxvakan/vrf/api/vexxvakan/sidecar/v1"
-	scerror "github.com/vexxvakan/vrf/sidecar/errors"
-	sidecarmetrics "github.com/vexxvakan/vrf/sidecar/servers/metrics"
+	sidecarv1 "github.com/dgtlkitchen/vrf/api/digitalkitchen/sidecar/v1"
+	scerror "github.com/dgtlkitchen/vrf/sidecar/errors"
+	sidecarmetrics "github.com/dgtlkitchen/vrf/sidecar/servers/metrics"
 )
 
 var (

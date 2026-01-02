@@ -36,8 +36,8 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrfkeeper "github.com/dgtlkitchen/vrf/x/vrf/keeper"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 // module account permissions

@@ -8,8 +8,8 @@ import (
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	"github.com/cosmos/cosmos-sdk/version"
 
-	"github.com/vexxvakan/vrf/app"
-	"github.com/vexxvakan/vrf/cmd/chaind/cmd"
+	"github.com/dgtlkitchen/vrf/app"
+	"github.com/dgtlkitchen/vrf/cmd/chaind/cmd"
 )
 
 func main() {

@@ -13,8 +13,8 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
-	vrfkeeper "github.com/vexxvakan/vrf/x/vrf/keeper"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrfkeeper "github.com/dgtlkitchen/vrf/x/vrf/keeper"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 var (

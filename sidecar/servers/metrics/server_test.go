@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	"github.com/vexxvakan/vrf/sidecar/servers/metrics"
+	"github.com/dgtlkitchen/vrf/sidecar/servers/metrics"
 )
 
 // Test that Starting the server fails if the address is incorrect.

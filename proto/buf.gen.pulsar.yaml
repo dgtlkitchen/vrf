@@ -5,7 +5,7 @@ clean: true
 inputs:
   - directory: proto
     paths:
-      - proto/vexxvakan
+      - proto/digitalkitchen
 
 managed:
   enabled: true

@@ -18,7 +18,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	vrfserver "github.com/vexxvakan/vrf/sidecar/servers/vrf"
+	vrfserver "github.com/dgtlkitchen/vrf/sidecar/servers/vrf"
 )
 
 var (

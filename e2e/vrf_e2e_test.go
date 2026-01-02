@@ -35,8 +35,8 @@ import (
 	"github.com/drand/kyber/share/dkg"
 	"github.com/drand/kyber/util/random"
 
-	vrfmodule "github.com/vexxvakan/vrf/x/vrf/module"
-	vrftypes "github.com/vexxvakan/vrf/x/vrf/types"
+	vrfmodule "github.com/dgtlkitchen/vrf/x/vrf/module"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 const (

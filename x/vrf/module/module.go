@@ -20,8 +20,8 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/vexxvakan/vrf/x/vrf/keeper"
-	"github.com/vexxvakan/vrf/x/vrf/types"
+	"github.com/dgtlkitchen/vrf/x/vrf/keeper"
+	"github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 const ConsensusVersion = 1

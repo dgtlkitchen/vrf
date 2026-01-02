@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	scerror "github.com/vexxvakan/vrf/sidecar/errors"
+	scerror "github.com/dgtlkitchen/vrf/sidecar/errors"
 )
 
 func udsPeerTokenFromFD(fd int) (string, error) {

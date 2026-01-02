@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/module"
 
-	"github.com/vexxvakan/vrf/app/keepers"
+	"github.com/dgtlkitchen/vrf/app/keepers"
 )
 
 func CreateV2UpgradeHandler(

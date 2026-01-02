@@ -1,4 +1,4 @@
-module github.com/vexxvakan/vrf/e2e
+module github.com/dgtlkitchen/vrf/e2e
 
 go 1.25.3
 
@@ -8,7 +8,7 @@ require (
 	github.com/drand/drand/v2 v2.1.4
 	github.com/drand/kyber v1.3.2
 	github.com/stretchr/testify v1.11.1
-	github.com/vexxvakan/vrf v0.0.0-00010101000000-000000000000
+	github.com/dgtlkitchen/vrf v0.0.0-00010101000000-000000000000
 	go.uber.org/zap v1.27.1
 )
 
@@ -268,6 +268,6 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-replace github.com/vexxvakan/vrf => ../
+replace github.com/dgtlkitchen/vrf => ../
 
 replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.2

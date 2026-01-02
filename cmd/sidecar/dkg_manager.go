@@ -28,8 +28,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/vexxvakan/vrf/sidecar/chainws"
-	"github.com/vexxvakan/vrf/sidecar/drand"
+	"github.com/dgtlkitchen/vrf/sidecar/chainws"
+	"github.com/dgtlkitchen/vrf/sidecar/drand"
 )
 
 var (

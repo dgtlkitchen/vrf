@@ -5,7 +5,7 @@ clean: false
 inputs:
   - directory: proto
     paths:
-      - proto/vexxvakan/vrf
+      - proto/digitalkitchen/vrf
 
 plugins:
   - local: ["go", "tool", "protoc-gen-gocosmos"]
