@@ -10,8 +10,8 @@ BUF ?= $(GO) tool buf
 CHAIN_NAME ?= vrf
 CHAIN_BINARY ?= chaind
 CHAIN_PKG ?= ./cmd/chaind
-SIDECAR_BINARY ?= sidecar
-SIDECAR_PKG ?= ./cmd/sidecar
+SIDECAR_BINARY ?= vrfsidecar
+SIDECAR_PKG ?= ./cmd/vrfsidecar
 
 # Inputs (overridable):
 # - BUILD_TAGS: additional Go build tags (space-separated)
