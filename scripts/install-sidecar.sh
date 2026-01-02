@@ -30,9 +30,6 @@ case "${ARCH}" in
             FILE_NAME="vrfsidecar-${VERSION}-linux-arm64.tar.gz"
         fi
         ;;
-    i386|i686)
-        FILE_NAME="vrfsidecar-${VERSION}-linux-386.tar.gz"
-        ;;
     *)
         echo "Unsupported architecture: ${ARCH}"
         exit 1
