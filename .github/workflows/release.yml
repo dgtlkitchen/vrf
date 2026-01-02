@@ -1,32 +1,84 @@
 name: Release
-# This workflow helps with creating releases.
-# This job will only be triggered when a tag (vX.X.x) is pushed
+
 on:
-    push:
-        # Sequence of patterns matched against refs/tags
-        tags:
-            - "v*.**" # Push events to matching v*.*, i.e. v0.0.0, v0.0.0-alpha.0, etc.
+  release:
+    types: [published]
 
 permissions:
-    contents: read
+  contents: read
 
 jobs:
-    release:
-        permissions:
-            contents: write # for goreleaser/goreleaser-action to create a GitHub release
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - name: Install Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version: 1.25.5
-            - name: Unshallow
-              run: git fetch --prune --unshallow
-            - name: Create release
-              uses: goreleaser/goreleaser-action@v6
-              with:
-                  args: release --clean
-                  version: "~> v1"
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  vrfsidecar:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Resolve release version
+        id: vars
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build vrfsidecar tarballs
+        env:
+          RELEASE_TAG: ${{ steps.vars.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.vars.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist/tmp
+
+          build_target() {
+            local goos="$1"
+            local goarch="$2"
+            local target="${goos}-${goarch}"
+            local outdir="dist/tmp/${target}"
+
+            make build-sidecar \
+              SKIP_TIDY=true \
+              LEDGER_ENABLED=false \
+              LINK_STATICALLY=true \
+              VERSION="${RELEASE_TAG}" \
+              GOOS="${goos}" \
+              GOARCH="${goarch}" \
+              BIN_DIR="${outdir}"
+
+            tar -C "${outdir}" -czf "dist/vrfsidecar-${RELEASE_VERSION}-${target}.tar.gz" vrfsidecar
+          }
+
+          build_target darwin amd64
+          build_target darwin arm64
+          build_target linux 386
+          build_target linux amd64
+          build_target linux arm64
+
+          (
+            cd dist
+            sha256sum vrfsidecar-"${RELEASE_VERSION}"-*.tar.gz > vrfsidecar-"${RELEASE_VERSION}"-checksums.txt
+          )
+
+      - name: Upload vrfsidecar artifacts
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          files: |
+            dist/vrfsidecar-${{ steps.vars.outputs.version }}-*.tar.gz
+            dist/vrfsidecar-${{ steps.vars.outputs.version }}-checksums.txt
+          fail_on_unmatched_files: true
+          overwrite: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
