@@ -60,6 +60,7 @@ import (
 	vrfve "github.com/dgtlkitchen/vrf/x/vrf/abci/ve"
 	vrfconfig "github.com/dgtlkitchen/vrf/x/vrf/config"
 	vrfsidecar "github.com/dgtlkitchen/vrf/x/vrf/sidecar"
+	vrftypes "github.com/dgtlkitchen/vrf/x/vrf/types"
 )
 
 const (
@@ -178,7 +179,6 @@ func New(
 	if err != nil {
 		panic(err)
 	}
-
 	app.vrfClient = vrfsidecar.NoOpClient{}
 	if vrfAppCfg.Enabled {
 		vrfClient, err := vrfsidecar.NewClient(logger, vrfAppCfg.VrfAddress, vrfAppCfg.ClientTimeout)
@@ -209,6 +209,7 @@ func New(
 	app.ModuleManager.SetOrderPreBlockers(
 		upgradetypes.ModuleName,
 		authtypes.ModuleName,
+		vrftypes.ModuleName,
 	)
 	app.ModuleManager.SetOrderBeginBlockers(orderBeginBlockers()...)
 	app.ModuleManager.SetOrderEndBlockers(orderEndBlockers()...)
