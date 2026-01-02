@@ -1,8 +1,9 @@
 name: Release Docker Images
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*.*.*"
 
 permissions:
   contents: read
@@ -53,12 +54,11 @@ jobs:
         env:
           OWNER: ${{ github.repository_owner }}
           IMAGE_NAME: ${{ matrix.image }}
-          IS_PRERELEASE: ${{ github.event.release.prerelease }}
         run: |
           set -euo pipefail
           IMAGE="${REGISTRY}/${OWNER}/${IMAGE_NAME}"
           TAGS="${IMAGE}:${GITHUB_REF_NAME}"
-          if [ "${IS_PRERELEASE}" != "true" ]; then
+          if [[ "${GITHUB_REF_NAME}" != *"-"* ]]; then
             TAGS="${TAGS}\n${IMAGE}:latest"
           fi
           {

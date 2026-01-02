@@ -1,12 +1,16 @@
 name: e2e
 
 on:
+  pull_request:
   push:
+    tags:
+      - "**"
     branches:
-      - main
+      - "main"
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
